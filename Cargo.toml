@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy = { version = "0.16", features = ["dynamic_linking"] }
+bevy_enhanced_input = "0.12.0"
 log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }
 
 [profile.dev]
