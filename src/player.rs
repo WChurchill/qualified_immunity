@@ -1,6 +1,5 @@
-use bevy::prelude::*;
-
 use crate::movement::Velocity;
+use bevy::prelude::*;
 
 pub struct PlayerPlugin;
 
@@ -15,24 +14,30 @@ const MOVEMENT_SPEED: f32 = 150.;
 
 fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
-
+    println!("spawn player");
     commands.spawn((
         Sprite::from_image(asset_server.load("white_blood_cell.png")),
-        Transform::from_xyz(0., 0., 0.),
-        Velocity::new(Vec3::new(MOVEMENT_SPEED, 0., 0.)),
+        Transform::from_scale(Vec3::splat(0.05)),
+        Velocity::new(Vec3::ZERO),
     ));
 }
 
-fn update_velocity(mut sprite_position: Query<(&mut Velocity, &mut Transform)>) {
-    for (mut logo, transform) in &mut sprite_position {
-        if transform.translation.x > 200. {
-            *logo = Velocity {
-                value: Vec3::new(-MOVEMENT_SPEED, 0., 0.),
-            };
-        } else if transform.translation.x < -200. {
-            *logo = Velocity {
-                value: Vec3::new(MOVEMENT_SPEED, 0., 0.),
-            };
+fn update_velocity(keyboard: Res<ButtonInput<KeyCode>>, mut players: Query<&mut Velocity>) {
+    for mut velocity in &mut players {
+        velocity.value = Vec3::ZERO;
+        if keyboard.pressed(KeyCode::ArrowLeft) {
+            velocity.value.x -= 1.0;
         }
+        if keyboard.pressed(KeyCode::ArrowRight) {
+            velocity.value.x += 1.0;
+        }
+        if keyboard.pressed(KeyCode::ArrowDown) {
+            velocity.value.y -= 1.0;
+        }
+        if keyboard.pressed(KeyCode::ArrowUp) {
+            velocity.value.y += 1.0;
+        }
+
+        velocity.value = velocity.value.normalize_or_zero() * MOVEMENT_SPEED;
     }
 }
