@@ -9,6 +9,8 @@ pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, init_level);
+
+        app.insert_resource(ClearColor(Color::oklcha(0.72, 0.15, 15.8, 1.0)));
     }
 }
 
