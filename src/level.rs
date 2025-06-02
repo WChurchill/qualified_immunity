@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::prelude::*;
 
 use crate::movement::Velocity;
 use crate::player::Player;
@@ -23,4 +24,30 @@ fn init_level(mut commands: Commands, asset_server: Res<AssetServer>) {
         velocity: Velocity::new(Vec3::ZERO),
         marker: Player,
     });
+
+    const WINDOW_HEIGHT: f32 = 600.0;
+    const WINDOW_WIDTH: f32 = 800.0;
+
+    for _ in 0..100 {
+        let mut rng = rand::rng();
+        let position = Vec2::new(
+            rng.random_range(-WINDOW_WIDTH / 2.0..WINDOW_WIDTH / 2.0),
+            rng.random_range(-WINDOW_HEIGHT / 2.0..WINDOW_HEIGHT / 2.0),
+        );
+
+        commands.spawn(VirusBundle {
+            sprite: Sprite::from_image(asset_server.load("virus.png")),
+            transform: Transform {
+                translation: position.extend(0.0),
+                scale: Vec3::splat(0.1),
+                ..Default::default()
+            },
+        });
+    }
+}
+
+#[derive(Bundle)]
+pub struct VirusBundle {
+    pub sprite: Sprite,
+    pub transform: Transform,
 }
