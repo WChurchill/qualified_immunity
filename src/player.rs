@@ -41,6 +41,11 @@ fn update_velocity(
             velocity.value.y += 1.0;
         }
 
-        velocity.value = velocity.value.normalize_or_zero() * MOVEMENT_SPEED;
+        let mut movement_speed = MOVEMENT_SPEED;
+        if keyboard.pressed(KeyCode::Space) {
+            movement_speed *= 2.0;
+        }
+
+        velocity.value = velocity.value.normalize_or_zero() * movement_speed;
     }
 }
