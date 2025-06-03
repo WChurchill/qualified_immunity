@@ -1,2 +1,6 @@
 /target
 *~
+
+webbuild.zip
+/webbuild/*
+!/webbuild/index.html
