@@ -10,7 +10,7 @@ impl Plugin for CollisionPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub enum Hitbox {
     Circle(Circle),
     Rectangle(Rectangle),
