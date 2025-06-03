@@ -7,7 +7,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_velocity);
+        app.add_systems(Update, (update_velocity, update_camera).chain());
     }
 }
 
@@ -51,4 +51,16 @@ fn update_velocity(
 
         velocity.value = velocity.value.normalize_or_zero() * movement_speed;
     }
+}
+
+fn update_camera(
+    mut camera: Single<&mut Transform, (With<Camera2d>, Without<Player>)>,
+    player: Single<&Transform, (With<Player>, Without<Camera2d>)>,
+    time: Res<Time>,
+) {
+    let target = player.translation.xy().extend(camera.translation.z);
+
+    camera
+        .translation
+        .smooth_nudge(&target, 0.2, time.delta_secs());
 }
