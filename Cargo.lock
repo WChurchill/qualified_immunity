@@ -2547,17 +2547,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
-name = "jam"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_enhanced_input",
- "getrandom 0.3.3",
- "log",
- "rand 0.9.1",
-]
-
-[[package]]
 name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3478,6 +3467,17 @@ name = "profiling"
 version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "afbdc74edc00b6f6a218ca6a5364d6226a259d4b8ea1af4a0ea063f27e179f4d"
+
+[[package]]
+name = "qualified_immunity"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_enhanced_input",
+ "getrandom 0.3.3",
+ "log",
+ "rand 0.9.1",
+]
 
 [[package]]
 name = "quote"
