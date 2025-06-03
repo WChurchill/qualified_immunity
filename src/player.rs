@@ -60,7 +60,8 @@ fn update_camera(
 ) {
     let target = player.translation.xy().extend(camera.translation.z);
 
+    const CAMERA_DECAY: f32 = 0.99;
     camera
         .translation
-        .smooth_nudge(&target, 0.2, time.delta_secs());
+        .smooth_nudge(&target, CAMERA_DECAY, time.delta_secs());
 }
