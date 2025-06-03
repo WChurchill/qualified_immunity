@@ -62,6 +62,13 @@ pub struct WallCellBundle {
     pub hitbox: Hitbox,
 }
 
+fn random_rotate_cell(bundle: &mut WallCellBundle, rng: &mut ThreadRng) {
+    let dir: f32 = rng.random_range(0..4) as f32 * PI / 2.0;
+    bundle.transform.rotate_z(dir);
+    bundle.sprite.flip_x = rng.random_bool(0.5);
+    bundle.sprite.flip_y = rng.random_bool(0.5);
+}
+
 fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     const BOX_GRID_WIDTH: i32 = 30;
 
@@ -71,11 +78,18 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_scale(Vec3::splat(0.2)),
         hitbox: Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH)),
     };
+
+    let mut rng: ThreadRng = rand::rng();
+
     for i in 0..BOX_GRID_WIDTH {
-        let mut cell_wall = template.clone();
-        cell_wall.transform.translation.x = i as f32 * HITBOX_WIDTH;
-        cell_wall.transform.translation.y = 200.0;
-        commands.spawn(cell_wall);
+        let mut wall_cell = template.clone();
+        wall_cell.transform.translation.x = i as f32 * HITBOX_WIDTH;
+        wall_cell.transform.translation.y = 200.0;
+
+        // Randomize the appearance to make them all look different.
+        random_rotate_cell(&mut wall_cell, &mut rng);
+
+        commands.spawn(wall_cell);
     }
 }
 
