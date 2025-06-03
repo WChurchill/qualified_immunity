@@ -1,6 +1,8 @@
 use crate::movement::Velocity;
 use bevy::prelude::*;
 
+use crate::collision::Hitbox;
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -20,6 +22,7 @@ pub struct PlayerBundle {
     pub transform: Transform,
     pub velocity: Velocity,
     pub marker: Player,
+    pub hitbox: Hitbox,
 }
 
 fn update_velocity(
