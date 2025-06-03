@@ -27,32 +27,6 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         marker: Player,
         hitbox: Hitbox::Circle(Circle { radius: 20.0 }),
     });
-
-    const WINDOW_HEIGHT: f32 = 600.0;
-    const WINDOW_WIDTH: f32 = 800.0;
-
-    for _ in 0..100 {
-        let mut rng = rand::rng();
-        let position = Vec2::new(
-            rng.random_range(-WINDOW_WIDTH / 2.0..WINDOW_WIDTH / 2.0),
-            rng.random_range(-WINDOW_HEIGHT / 2.0..WINDOW_HEIGHT / 2.0),
-        );
-
-        let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
-        const VIRUS_SPEED: f32 = 20.0;
-        commands.spawn(VirusBundle {
-            sprite: Sprite::from_image(asset_server.load("virus.png")),
-            transform: Transform {
-                translation: position.extend(0.0),
-                scale: Vec3::splat(0.1),
-                ..Default::default()
-            },
-            hitbox: Hitbox::Rectangle(Rectangle::new(15., 30.)),
-            velocity: Velocity {
-                value: random_direction.extend(0.) * VIRUS_SPEED,
-            },
-        });
-    }
 }
 
 #[derive(Bundle, Clone)]
@@ -93,12 +67,16 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
+#[derive(Component, Default)]
+pub struct Directional;
+
 #[derive(Bundle)]
 pub struct VirusBundle {
     pub sprite: Sprite,
     pub transform: Transform,
     pub hitbox: Hitbox,
     pub velocity: Velocity,
+    pub marker: Directional,
 }
 
 fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -115,7 +93,11 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
         let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
         const VIRUS_SPEED: f32 = 20.0;
         commands.spawn(VirusBundle {
-            sprite: Sprite::from_image(asset_server.load("virus.png")),
+            sprite: Sprite {
+                image: asset_server.load("virus.png"),
+                flip_y: true,
+                ..Default::default()
+            },
             transform: Transform {
                 translation: position.extend(0.0),
                 scale: Vec3::splat(0.1),
@@ -125,6 +107,7 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
             velocity: Velocity {
                 value: random_direction.extend(0.) * VIRUS_SPEED,
             },
+            marker: Directional,
         });
     }
 }

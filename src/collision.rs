@@ -24,7 +24,14 @@ fn draw_hitbox(mut gizmos: Gizmos, query: Query<(&Hitbox, &Transform)>) {
                 gizmos.circle_2d(transform.translation.xy(), c.radius, color);
             }
             Hitbox::Rectangle(r) => {
-                gizmos.rect_2d(transform.translation.xy(), r.size(), color);
+                gizmos.rect_2d(
+                    Isometry2d::new(
+                        transform.translation.xy(),
+                        Rot2::radians(transform.rotation.to_euler(EulerRot::ZYX).0),
+                    ),
+                    r.size(),
+                    color,
+                );
             }
         };
     }
