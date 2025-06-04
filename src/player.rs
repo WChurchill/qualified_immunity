@@ -2,12 +2,14 @@ use crate::movement::Velocity;
 use bevy::prelude::*;
 
 use crate::collision::Collider;
+use crate::schedule::InGameSet;
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (update_velocity, update_camera).chain());
+        app.add_systems(Update, update_velocity.in_set(InGameSet::UserInput));
+        app.add_systems(Update, update_camera.in_set(InGameSet::EntityUpdates));
     }
 }
 

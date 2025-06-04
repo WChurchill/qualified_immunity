@@ -3,12 +3,14 @@ mod enemy;
 mod level;
 mod movement;
 mod player;
+mod schedule;
 
 use bevy::prelude::*;
 use collision::CollisionPlugin;
 use level::LevelPlugin;
 use movement::MovementPlugin;
 use player::PlayerPlugin;
+use schedule::SchedulePlugin;
 
 fn main() {
     App::new()
@@ -17,5 +19,6 @@ fn main() {
         .add_plugins(PlayerPlugin)
         .add_plugins(LevelPlugin)
         .add_plugins(CollisionPlugin)
+        .add_plugins(SchedulePlugin)
         .run();
 }

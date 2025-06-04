@@ -3,15 +3,21 @@ use bevy::math::{bounding::*, *};
 use bevy::{platform::collections::HashMap, prelude::*};
 
 use crate::enemy::OneShotAttacker;
+use crate::schedule::InGameSet;
 
 pub struct CollisionPlugin;
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (draw_hitbox, collision_detection));
         app.add_systems(
             Update,
-            ((handle_collisions::<OneShotAttacker>), despawn_collided).chain(),
+            (draw_hitbox, collision_detection).in_set(InGameSet::CollisionDetection),
+        );
+        app.add_systems(
+            Update,
+            ((handle_collisions::<OneShotAttacker>), despawn_collided)
+                .chain()
+                .in_set(InGameSet::DespawnEntities),
         )
         .add_event::<CollisionEvent>();
     }
@@ -141,12 +147,20 @@ fn handle_collisions<T: Component>(
 fn despawn_collided(
     mut commands: Commands,
     mut collision_event_reader: EventReader<CollisionEvent>,
+    query: Query<Entity, With<Collider>>,
 ) {
     for &CollisionEvent {
         entity,
         collided_entity,
     } in collision_event_reader.read()
     {
+        let Ok(_attacker) = query.get(collided_entity) else {
+            continue;
+        };
+        let Ok(_victim) = query.get(entity) else {
+            continue;
+        };
+
         println!("hit!");
         commands.entity(entity).despawn();
         commands.entity(collided_entity).despawn();
