@@ -2,8 +2,9 @@ use bevy::prelude::*;
 use rand::prelude::*;
 use std::f32::consts::PI;
 
-use crate::collision::Hitbox;
-use crate::movement::Velocity;
+use crate::collision::{Collider, Hitbox};
+use crate::enemy::{OneShotAttacker, VirusBundle};
+use crate::movement::{Directional, Velocity};
 use crate::player::Player;
 use crate::player::PlayerBundle;
 
@@ -25,7 +26,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_scale(Vec3::splat(0.2)),
         velocity: Velocity::new(Vec3::ZERO),
         marker: Player,
-        hitbox: Hitbox::Circle(Circle { radius: 20.0 }),
+        collider: Collider::from_hitbox(Hitbox::Circle(Circle { radius: 20.0 })),
     });
 }
 
@@ -33,7 +34,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
 pub struct WallCellBundle {
     pub sprite: Sprite,
     pub transform: Transform,
-    pub hitbox: Hitbox,
+    pub collider: Collider,
 }
 
 fn random_rotate_cell(bundle: &mut WallCellBundle, rng: &mut ThreadRng) {
@@ -50,7 +51,7 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     let template = WallCellBundle {
         sprite: Sprite::from_image(asset_server.load("wall_cell.png")),
         transform: Transform::from_scale(Vec3::splat(0.2)),
-        hitbox: Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH)),
+        collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH))),
     };
 
     let mut rng: ThreadRng = rand::rng();
@@ -67,23 +68,12 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
-#[derive(Component, Default)]
-pub struct Directional;
-
-#[derive(Bundle)]
-pub struct VirusBundle {
-    pub sprite: Sprite,
-    pub transform: Transform,
-    pub hitbox: Hitbox,
-    pub velocity: Velocity,
-    pub marker: Directional,
-}
-
+const INITIAL_ENEMIES: i32 = 100;
 fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
     const WINDOW_HEIGHT: f32 = 600.0;
     const WINDOW_WIDTH: f32 = 800.0;
 
-    for _ in 0..100 {
+    for _ in 0..INITIAL_ENEMIES {
         let mut rng = rand::rng();
         let position = Vec2::new(
             rng.random_range(-WINDOW_WIDTH / 2.0..WINDOW_WIDTH / 2.0),
@@ -103,11 +93,12 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
                 scale: Vec3::splat(0.1),
                 ..Default::default()
             },
-            hitbox: Hitbox::Rectangle(Rectangle::new(15., 30.)),
+            collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::new(15., 30.))),
             velocity: Velocity {
                 value: random_direction.extend(0.) * VIRUS_SPEED,
             },
             marker: Directional,
+            enemy_class: OneShotAttacker,
         });
     }
 }

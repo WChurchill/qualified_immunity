@@ -1,4 +1,5 @@
 mod collision;
+mod enemy;
 mod level;
 mod movement;
 mod player;

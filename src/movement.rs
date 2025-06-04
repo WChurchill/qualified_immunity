@@ -1,11 +1,13 @@
 use bevy::prelude::*;
 
-use crate::level::Directional;
-
 #[derive(Component, Debug)]
 pub struct Velocity {
     pub value: Vec3,
 }
+
+// Marker to indicate if object should point in direction of velocity.
+#[derive(Component, Default)]
+pub struct Directional;
 
 impl Velocity {
     pub fn new(value: Vec3) -> Self {
