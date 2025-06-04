@@ -20,13 +20,9 @@ impl Plugin for SchedulePlugin {
                 InGameSet::EntityUpdates,
                 InGameSet::CollisionDetection,
                 InGameSet::DespawnEntities,
-            ),
+            )
+                .chain(),
         )
-        .add_systems(
-            Update,
-            ApplyDeferred
-                .after(InGameSet::DespawnEntities)
-                .before(InGameSet::UserInput),
-        );
+        .add_systems(Update, ApplyDeferred.before(InGameSet::EntityUpdates));
     }
 }
