@@ -7,6 +7,7 @@ mod schedule;
 
 use bevy::prelude::*;
 use collision::CollisionPlugin;
+use enemy::EnemyPlugin;
 use level::LevelPlugin;
 use movement::MovementPlugin;
 use player::PlayerPlugin;
@@ -20,5 +21,6 @@ fn main() {
         .add_plugins(LevelPlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(SchedulePlugin)
+        .add_plugins(EnemyPlugin)
         .run();
 }

@@ -3,7 +3,7 @@ use rand::prelude::*;
 use std::f32::consts::PI;
 
 use crate::collision::{Collider, Hitbox};
-use crate::enemy::{OneShotAttacker, VirusBundle};
+use crate::enemy::{Hostile, VirusBundle, VIRUS_SPEED};
 use crate::movement::{Directional, Velocity};
 use crate::player::Player;
 use crate::player::PlayerBundle;
@@ -30,11 +30,29 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+#[derive(Component, Clone)]
+pub struct Host {
+    pub seconds_to_death: f32,
+    pub rate_of_decay: f32,
+    pub num_offspring: i32,
+}
+
+impl Host {
+    pub fn new(seconds_to_death: f32, num_offspring: i32) -> Self {
+        Host {
+            seconds_to_death: seconds_to_death,
+            rate_of_decay: 0.0,
+            num_offspring: num_offspring,
+        }
+    }
+}
+
 #[derive(Bundle, Clone)]
 pub struct WallCellBundle {
     pub sprite: Sprite,
     pub transform: Transform,
     pub collider: Collider,
+    pub host: Host,
 }
 
 fn random_rotate_cell(bundle: &mut WallCellBundle, rng: &mut ThreadRng) {
@@ -52,6 +70,7 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
         sprite: Sprite::from_image(asset_server.load("wall_cell.png")),
         transform: Transform::from_scale(Vec3::splat(0.2)),
         collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH))),
+        host: Host::new(20.0, 4),
     };
 
     let mut rng: ThreadRng = rand::rng();
@@ -81,7 +100,6 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
         );
 
         let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
-        const VIRUS_SPEED: f32 = 20.0;
         commands.spawn(VirusBundle {
             sprite: Sprite {
                 image: asset_server.load("virus.png"),
@@ -98,7 +116,7 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
                 value: random_direction.extend(0.) * VIRUS_SPEED,
             },
             marker: Directional,
-            enemy_class: OneShotAttacker,
+            enemy_class: Hostile::InfectThenDie,
         });
     }
 }

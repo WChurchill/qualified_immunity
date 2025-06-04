@@ -2,7 +2,7 @@ use bevy::color::palettes::css::*;
 use bevy::math::{bounding::*, *};
 use bevy::{platform::collections::HashMap, prelude::*};
 
-use crate::enemy::OneShotAttacker;
+use crate::enemy::Hostile;
 use crate::schedule::InGameSet;
 
 pub struct CollisionPlugin;
@@ -15,7 +15,7 @@ impl Plugin for CollisionPlugin {
         );
         app.add_systems(
             Update,
-            ((handle_collisions::<OneShotAttacker>), despawn_collided)
+            ((handle_collisions::<Hostile>), despawn_collided)
                 .chain()
                 .in_set(InGameSet::DespawnEntities),
         )
@@ -161,7 +161,6 @@ fn despawn_collided(
             continue;
         };
 
-        println!("hit!");
         commands.entity(entity).despawn();
         commands.entity(collided_entity).despawn();
     }
