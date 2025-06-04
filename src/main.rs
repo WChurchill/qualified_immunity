@@ -5,6 +5,7 @@ mod movement;
 mod player;
 mod schedule;
 
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use collision::CollisionPlugin;
 use enemy::EnemyPlugin;
@@ -16,6 +17,7 @@ use schedule::SchedulePlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(PhysicsPlugins::default())
         .add_plugins(MovementPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(LevelPlugin)
