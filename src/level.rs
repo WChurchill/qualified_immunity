@@ -22,8 +22,12 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
 
     commands.spawn(PlayerBundle {
-        sprite: Sprite::from_image(asset_server.load("white_blood_cell.png")),
-        transform: Transform::from_scale(Vec3::splat(0.2)),
+        sprite: Sprite {
+            image: asset_server.load("white_blood_cell.png"),
+            custom_size: Some(Vec2::splat(40.)),
+            ..default()
+        },
+        transform: Transform::from_xyz(0., 0., 0.),
         velocity: Velocity::new(Vec3::ZERO),
         marker: Player,
         collider: Collider::circle(20.0),
@@ -71,9 +75,12 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     const HITBOX_WIDTH: f32 = 40.;
     let template = WallCellBundle {
-        sprite: Sprite::from_image(asset_server.load("wall_cell.png")),
-        transform: Transform::from_scale(Vec3::splat(0.2)),
-        // collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH))),
+        sprite: Sprite {
+            image: asset_server.load("wall_cell.png"),
+            custom_size: Some(Vec2::splat(40.)),
+            ..default()
+        },
+        transform: Transform::IDENTITY,
         collider: Collider::rectangle(HITBOX_WIDTH, HITBOX_WIDTH),
         host: Host::new(20.0, 4),
     };
@@ -114,12 +121,12 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
         commands.spawn(VirusBundle {
             sprite: Sprite {
                 image: asset_server.load("virus.png"),
+                custom_size: Some(Vec2::splat(20.)),
                 flip_y: true,
                 ..Default::default()
             },
             transform: Transform {
                 translation: position.extend(0.0),
-                scale: Vec3::splat(0.1),
                 ..Default::default()
             },
             collider: Collider::rectangle(15., 30.),
