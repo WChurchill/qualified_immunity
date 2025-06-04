@@ -106,6 +106,7 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 const INITIAL_ENEMIES: i32 = 100;
+const VIRUS_HITBOX: (f32, f32) = (11.0, 15.0);
 fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
     const WINDOW_HEIGHT: f32 = 600.0;
     const WINDOW_WIDTH: f32 = 800.0;
@@ -129,7 +130,7 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
                 translation: position.extend(0.0),
                 ..Default::default()
             },
-            collider: Collider::rectangle(15., 30.),
+            collider: Collider::rectangle(VIRUS_HITBOX.0, VIRUS_HITBOX.1),
             velocity: Velocity {
                 value: random_direction.extend(0.) * VIRUS_SPEED,
             },
