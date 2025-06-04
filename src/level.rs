@@ -63,7 +63,11 @@ fn random_rotate_cell(bundle: &mut WallCellBundle, rng: &mut ThreadRng) {
 }
 
 fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
-    const BOX_GRID_WIDTH: i32 = 30;
+    const BOX_GRID_WIDTH: i32 = 10;
+    const BOX_GRID_HEIGHT: i32 = 10;
+
+    const X_OFFSET: f32 = 300.;
+    const Y_OFFSET: f32 = 0.;
 
     const HITBOX_WIDTH: f32 = 40.;
     let template = WallCellBundle {
@@ -75,15 +79,21 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let mut rng: ThreadRng = rand::rng();
 
-    for i in 0..BOX_GRID_WIDTH {
-        let mut wall_cell = template.clone();
-        wall_cell.transform.translation.x = i as f32 * HITBOX_WIDTH;
-        wall_cell.transform.translation.y = 200.0;
+    for i in 0..BOX_GRID_HEIGHT {
+        for j in 0..BOX_GRID_WIDTH {
+            if rng.random_bool(0.05) {
+                continue;
+            }
 
-        // Randomize the appearance to make them all look different.
-        random_rotate_cell(&mut wall_cell, &mut rng);
+            let mut wall_cell = template.clone();
+            wall_cell.transform.translation.x = j as f32 * HITBOX_WIDTH + X_OFFSET;
+            wall_cell.transform.translation.y = i as f32 * HITBOX_WIDTH + Y_OFFSET;
 
-        commands.spawn(wall_cell);
+            // Randomize the appearance to make them all look different.
+            random_rotate_cell(&mut wall_cell, &mut rng);
+
+            commands.spawn(wall_cell);
+        }
     }
 }
 
