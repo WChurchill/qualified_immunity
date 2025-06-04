@@ -5,7 +5,6 @@ use rand::seq::IndexedRandom;
 use crate::collision::Collider;
 use crate::level::Host;
 use crate::movement::{Directional, Velocity};
-use crate::player::Player;
 use crate::schedule::InGameSet;
 
 // Should only attack once and then die.
@@ -62,6 +61,8 @@ fn set_target(
 const TARGET_DEBUG_COLOR: Srgba = BLUE;
 
 pub const VIRUS_SPEED: f32 = 20.0;
+const FAST_ROTATE_DISTANCE: f32 = 20.0;
+const DIRECTIONAL_TURN_SPEED: f32 = 1.0;
 
 fn set_velocity(
     mut gizmos: Gizmos,
@@ -81,8 +82,19 @@ fn set_velocity(
             TARGET_DEBUG_COLOR,
         );
 
-        let to_target = (target.translation.xy() - seeker_transform.translation.xy()).normalize();
-        velocity.value = to_target.extend(0.0) * VIRUS_SPEED;
+        let to_target = target.translation.xy() - seeker_transform.translation.xy();
+        if to_target.length() < 0.01 {
+            velocity.value = Vec3::ZERO;
+        } else if to_target.length() < FAST_ROTATE_DISTANCE || velocity.value.length() < 0.01 {
+            velocity.value = to_target.extend(0.0).normalize() * VIRUS_SPEED;
+        } else {
+            let new_direction = velocity
+                .value
+                .xy()
+                .rotate_towards(to_target, DIRECTIONAL_TURN_SPEED * time.delta_secs());
+
+            velocity.value = new_direction.normalize_or_zero().extend(0.) * VIRUS_SPEED;
+        }
     }
     //
 }
