@@ -1,8 +1,8 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use rand::prelude::*;
 use std::f32::consts::PI;
 
-use crate::collision::{Collider, Hitbox};
 use crate::enemy::{Hostile, VirusBundle, VIRUS_SPEED};
 use crate::movement::{Directional, Velocity};
 use crate::player::Player;
@@ -26,7 +26,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_scale(Vec3::splat(0.2)),
         velocity: Velocity::new(Vec3::ZERO),
         marker: Player,
-        collider: Collider::from_hitbox(Hitbox::Circle(Circle { radius: 20.0 })),
+        collider: Collider::circle(20.0),
     });
 }
 
@@ -73,7 +73,8 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     let template = WallCellBundle {
         sprite: Sprite::from_image(asset_server.load("wall_cell.png")),
         transform: Transform::from_scale(Vec3::splat(0.2)),
-        collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH))),
+        // collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::from_length(HITBOX_WIDTH))),
+        collider: Collider::rectangle(HITBOX_WIDTH, HITBOX_WIDTH),
         host: Host::new(20.0, 4),
     };
 
@@ -121,12 +122,13 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
                 scale: Vec3::splat(0.1),
                 ..Default::default()
             },
-            collider: Collider::from_hitbox(Hitbox::Rectangle(Rectangle::new(15., 30.))),
+            collider: Collider::rectangle(15., 30.),
             velocity: Velocity {
                 value: random_direction.extend(0.) * VIRUS_SPEED,
             },
             marker: Directional,
             enemy_class: Hostile::InfectThenDie,
+            collidingentities: CollidingEntities::default(),
         });
     }
 }

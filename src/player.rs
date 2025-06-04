@@ -1,7 +1,7 @@
 use crate::movement::Velocity;
+use avian2d::prelude::*;
 use bevy::prelude::*;
 
-use crate::collision::Collider;
 use crate::schedule::InGameSet;
 
 pub struct PlayerPlugin;

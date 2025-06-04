@@ -1,8 +1,8 @@
+use avian2d::prelude::*;
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::seq::IndexedRandom;
 
-use crate::collision::Collider;
 use crate::level::Host;
 use crate::movement::{Directional, Velocity};
 use crate::schedule::InGameSet;
@@ -24,6 +24,7 @@ pub struct VirusBundle {
     pub velocity: Velocity,
     pub marker: Directional,
     pub enemy_class: Hostile,
+    pub collidingentities: CollidingEntities,
 }
 
 pub struct EnemyPlugin;
