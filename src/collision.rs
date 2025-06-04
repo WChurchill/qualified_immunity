@@ -161,6 +161,7 @@ fn despawn_collided(
             continue;
         };
 
+        // Please, just despawn something so I can see that you work
         commands.entity(entity).despawn();
         commands.entity(collided_entity).despawn();
     }
