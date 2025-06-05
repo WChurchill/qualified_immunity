@@ -1,7 +1,8 @@
-use crate::movement::Velocity;
 use avian2d::prelude::*;
 use bevy::prelude::*;
 
+use crate::enemy::{Hostile, VirusAttached};
+use crate::movement::Velocity;
 use crate::schedule::InGameSet;
 
 pub struct PlayerPlugin;
@@ -25,6 +26,7 @@ pub struct PlayerBundle {
     pub velocity: Velocity,
     pub marker: Player,
     pub collider: Collider,
+    pub colliding_entities: CollidingEntities,
 }
 
 fn update_velocity(
@@ -53,6 +55,18 @@ fn update_velocity(
 
         velocity.value = velocity.value.normalize_or_zero() * movement_speed;
     }
+}
+
+pub fn handle_virus_collision(
+    trigger: Trigger<OnCollisionStart>,
+    mut commands: Commands,
+    enemies: Query<Entity, (With<Hostile>, Without<VirusAttached>)>,
+) {
+    let Ok(entity) = enemies.get(trigger.collider) else {
+        return;
+    };
+
+    commands.entity(entity).despawn();
 }
 
 fn update_camera(

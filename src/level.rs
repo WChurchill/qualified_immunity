@@ -22,17 +22,21 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
 
     commands
-        .spawn(PlayerBundle {
-            sprite: Sprite {
-                image: asset_server.load("white_blood_cell.png"),
-                custom_size: Some(Vec2::splat(40.)),
-                ..default()
+        .spawn((
+            PlayerBundle {
+                sprite: Sprite {
+                    image: asset_server.load("white_blood_cell.png"),
+                    custom_size: Some(Vec2::splat(40.)),
+                    ..default()
+                },
+                transform: Transform::from_xyz(0., 0., 0.),
+                velocity: Velocity::new(Vec3::ZERO),
+                marker: Player,
+                collider: Collider::circle(20.0),
+                colliding_entities: CollidingEntities::default(),
             },
-            transform: Transform::from_xyz(0., 0., 0.),
-            velocity: Velocity::new(Vec3::ZERO),
-            marker: Player,
-            collider: Collider::circle(20.0),
-        })
+            CollisionEventsEnabled,
+        ))
         .observe(handle_virus_collision);
 }
 

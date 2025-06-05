@@ -27,7 +27,7 @@ pub struct VirusBundle {
     pub velocity: Velocity,
     pub marker: Directional,
     pub enemy_class: Hostile,
-    pub collidingentities: CollidingEntities,
+    pub colliding_entities: CollidingEntities,
 }
 
 const VIRUS_SPRITE_FILEPATH: &'static str = "virus.png";
@@ -56,7 +56,7 @@ pub fn create_virus(
         },
         marker: Directional,
         enemy_class: Hostile::InfectThenDie,
-        collidingentities: CollidingEntities::default(),
+        colliding_entities: CollidingEntities::default(),
     }
 }
 
