@@ -7,7 +7,9 @@ use crate::enemy::create_virus;
 use crate::host::{handle_infection, Host};
 use crate::movement::{Speed, Velocity};
 use crate::player::{handle_virus_collision, Player, PlayerBundle};
-use crate::player_attack::{ChargeText, PlayerActionParams, PlayerChargingGUI};
+use crate::player_attack::{
+    BoostText, DuplicationChargingGUI, DuplicationText, PlayerActionParams, PlayerChargingGUI,
+};
 
 pub struct LevelPlugin;
 
@@ -19,8 +21,15 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_player(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     commands.spawn(Camera2d);
+
+    let rect = meshes.add(Rectangle::new(200., 50.));
     commands
         .spawn((
             Text::new("Hold space to boost "),
@@ -31,11 +40,21 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
         ))
-        .with_child((TextSpan::default(), ChargeText));
+        .with_child((
+            TextSpan::default(),
+            BoostText,
+            Mesh2d(rect),
+            MeshMaterial2d(materials.add(Color::srgb(0.0, 1.0, 0.0))),
+        ));
 
     commands.insert_resource(PlayerChargingGUI {
         current_boost_level: 0.,
         max_boost_level: 2.,
+    });
+
+    commands.insert_resource(DuplicationChargingGUI {
+        current_progress: 0.,
+        max_progress: 3.0,
     });
 
     commands
