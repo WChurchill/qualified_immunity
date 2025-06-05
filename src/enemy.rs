@@ -31,7 +31,7 @@ pub struct VirusBundle {
 }
 
 const VIRUS_SPRITE_FILEPATH: &'static str = "virus.png";
-pub const VIRUS_HITBOX: (f32, f32) = (11.0, 15.0);
+pub const VIRUS_HITBOX: (f32, f32) = (11.0, 8.0);
 pub const VIRUS_SPRITE_SIZE: Vec2 = Vec2::splat(20.);
 
 pub fn create_virus(
@@ -50,7 +50,11 @@ pub fn create_virus(
             translation: position.extend(0.),
             ..default()
         },
-        collider: Collider::rectangle(VIRUS_HITBOX.0, VIRUS_HITBOX.1),
+        collider: Collider::capsule_endpoints(
+            VIRUS_HITBOX.0 / 2.0,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(0.0, -3.0),
+        ),
         velocity: Velocity {
             value: direction.extend(0.) * VIRUS_SPEED,
         },
