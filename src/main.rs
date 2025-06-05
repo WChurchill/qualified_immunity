@@ -1,4 +1,3 @@
-mod collision;
 mod enemy;
 mod host;
 mod level;
@@ -8,7 +7,6 @@ mod schedule;
 
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use collision::CollisionPlugin;
 use enemy::EnemyPlugin;
 use host::HostPlugin;
 use level::LevelPlugin;
@@ -24,7 +22,6 @@ fn main() {
         .add_plugins(MovementPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(LevelPlugin)
-        //        .add_plugins(CollisionPlugin)
         .add_plugins(SchedulePlugin)
         .add_plugins(EnemyPlugin)
         .add_plugins(HostPlugin)
