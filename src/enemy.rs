@@ -3,7 +3,7 @@ use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::seq::IndexedRandom;
 
-use crate::level::Host;
+use crate::host::Host;
 use crate::movement::{Directional, Velocity};
 use crate::schedule::InGameSet;
 
@@ -25,6 +25,36 @@ pub struct VirusBundle {
     pub marker: Directional,
     pub enemy_class: Hostile,
     pub collidingentities: CollidingEntities,
+}
+
+const VIRUS_SPRITE_FILEPATH: &'static str = "virus.png";
+pub const VIRUS_HITBOX: (f32, f32) = (11.0, 15.0);
+pub const VIRUS_SPRITE_SIZE: Vec2 = Vec2::splat(20.);
+
+pub fn create_virus(
+    asset_server: &Res<AssetServer>,
+    direction: Vec2,
+    position: Vec2,
+) -> VirusBundle {
+    VirusBundle {
+        sprite: Sprite {
+            image: asset_server.load(VIRUS_SPRITE_FILEPATH),
+            custom_size: Some(VIRUS_SPRITE_SIZE),
+            flip_y: true,
+            ..default()
+        },
+        transform: Transform {
+            translation: position.extend(0.),
+            ..default()
+        },
+        collider: Collider::rectangle(VIRUS_HITBOX.0, VIRUS_HITBOX.1),
+        velocity: Velocity {
+            value: direction.extend(0.) * VIRUS_SPEED,
+        },
+        marker: Directional,
+        enemy_class: Hostile::InfectThenDie,
+        collidingentities: CollidingEntities::default(),
+    }
 }
 
 pub struct EnemyPlugin;

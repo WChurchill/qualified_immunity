@@ -3,8 +3,9 @@ use bevy::prelude::*;
 use rand::prelude::*;
 use std::f32::consts::PI;
 
-use crate::enemy::{Hostile, VirusBundle, VIRUS_SPEED};
-use crate::movement::{Directional, Velocity};
+use crate::enemy::create_virus;
+use crate::host::Host;
+use crate::movement::Velocity;
 use crate::player::Player;
 use crate::player::PlayerBundle;
 
@@ -106,7 +107,6 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 const INITIAL_ENEMIES: i32 = 100;
-const VIRUS_HITBOX: (f32, f32) = (11.0, 15.0);
 fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
     const WINDOW_HEIGHT: f32 = 600.0;
     const WINDOW_WIDTH: f32 = 800.0;
@@ -119,24 +119,6 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
         );
 
         let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
-        commands.spawn(VirusBundle {
-            sprite: Sprite {
-                image: asset_server.load("virus.png"),
-                custom_size: Some(Vec2::splat(20.)),
-                flip_y: true,
-                ..Default::default()
-            },
-            transform: Transform {
-                translation: position.extend(0.0),
-                ..Default::default()
-            },
-            collider: Collider::rectangle(VIRUS_HITBOX.0, VIRUS_HITBOX.1),
-            velocity: Velocity {
-                value: random_direction.extend(0.) * VIRUS_SPEED,
-            },
-            marker: Directional,
-            enemy_class: Hostile::InfectThenDie,
-            collidingentities: CollidingEntities::default(),
-        });
+        commands.spawn(create_virus(&asset_server, random_direction, position));
     }
 }
