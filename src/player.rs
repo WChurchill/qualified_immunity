@@ -2,7 +2,8 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 
 use crate::enemy::{Hostile, VirusAttached};
-use crate::movement::Velocity;
+use crate::movement::{Speed, Velocity};
+use crate::player_attack::PlayerActionParams;
 use crate::schedule::InGameSet;
 
 pub struct PlayerPlugin;
@@ -14,8 +15,6 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-const MOVEMENT_SPEED: f32 = 150.;
-
 #[derive(Component)]
 pub struct Player;
 
@@ -24,16 +23,18 @@ pub struct PlayerBundle {
     pub sprite: Sprite,
     pub transform: Transform,
     pub velocity: Velocity,
+    pub speed: Speed,
     pub marker: Player,
     pub collider: Collider,
     pub colliding_entities: CollidingEntities,
+    pub action_params: PlayerActionParams,
 }
 
 fn update_velocity(
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut players: Query<&mut Velocity, With<Player>>,
+    mut players: Query<(&mut Velocity, &Speed), With<Player>>,
 ) {
-    for mut velocity in &mut players {
+    for (mut velocity, speed) in &mut players {
         velocity.value = Vec3::ZERO;
         if keyboard.pressed(KeyCode::ArrowLeft) {
             velocity.value.x -= 1.0;
@@ -48,12 +49,7 @@ fn update_velocity(
             velocity.value.y += 1.0;
         }
 
-        let mut movement_speed = MOVEMENT_SPEED;
-        if keyboard.pressed(KeyCode::Space) {
-            movement_speed *= 2.0;
-        }
-
-        velocity.value = velocity.value.normalize_or_zero() * movement_speed;
+        velocity.value = velocity.value.normalize_or_zero() * speed.current;
     }
 }
 

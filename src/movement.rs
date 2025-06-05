@@ -7,6 +7,21 @@ pub struct Velocity {
     pub value: Vec3,
 }
 
+#[derive(Component, Debug)]
+pub struct Speed {
+    pub default: f32,
+    pub current: f32,
+}
+
+impl Speed {
+    pub fn new(value: f32) -> Self {
+        Self {
+            default: value,
+            current: value,
+        }
+    }
+}
+
 // Marker to indicate if object should point in direction of velocity.
 #[derive(Component, Default)]
 pub struct Directional;

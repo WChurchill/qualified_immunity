@@ -3,6 +3,7 @@ mod host;
 mod level;
 mod movement;
 mod player;
+mod player_attack;
 mod schedule;
 
 use avian2d::prelude::*;
@@ -12,6 +13,7 @@ use host::HostPlugin;
 use level::LevelPlugin;
 use movement::MovementPlugin;
 use player::PlayerPlugin;
+use player_attack::PlayerAttackPlugin;
 use schedule::SchedulePlugin;
 
 fn main() {
@@ -21,6 +23,7 @@ fn main() {
         .add_plugins(PhysicsDebugPlugin::default())
         .add_plugins(MovementPlugin)
         .add_plugins(PlayerPlugin)
+        .add_plugins(PlayerAttackPlugin)
         .add_plugins(LevelPlugin)
         .add_plugins(SchedulePlugin)
         .add_plugins(EnemyPlugin)
