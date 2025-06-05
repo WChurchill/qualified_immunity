@@ -73,8 +73,6 @@ pub struct WallCellBundle {
 }
 
 fn random_rotate_cell(bundle: &mut WallCellBundle, rng: &mut ThreadRng) {
-    let dir: f32 = rng.random_range(0..4) as f32 * PI / 2.0;
-    bundle.transform.rotate_z(dir);
     bundle.sprite.flip_x = rng.random_bool(0.5);
     bundle.sprite.flip_y = rng.random_bool(0.5);
 }
