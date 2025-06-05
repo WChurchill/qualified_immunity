@@ -16,6 +16,9 @@ pub enum Hostile {
 #[derive(Component)]
 pub struct Targeting(Entity);
 
+#[derive(Component)]
+pub struct VirusAttached;
+
 #[derive(Bundle)]
 pub struct VirusBundle {
     pub sprite: Sprite,
@@ -77,6 +80,7 @@ fn set_target(
             With<Transform>,
             With<Directional>,
             Without<Targeting>,
+            Without<VirusAttached>,
         ),
     >,
     targets: Query<Entity, (With<Transform>, With<Host>)>,

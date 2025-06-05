@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 
 pub struct HostPlugin;
 
-use crate::enemy::{create_virus, Hostile, Targeting};
+use crate::enemy::{create_virus, Hostile, Targeting, VirusAttached};
 use crate::movement::{Directional, Velocity};
 use crate::schedule::InGameSet;
 
@@ -39,19 +39,28 @@ impl Default for Infected {
 pub fn handle_infection(
     trigger: Trigger<OnCollisionStart>,
     mut commands: Commands,
-    mut enemies: Query<(&Hostile, &mut Velocity)>,
+    mut enemies: Query<(&Hostile, &mut Velocity, &mut Transform), Without<VirusAttached>>,
+    host: Query<&Transform, Without<Hostile>>,
 ) {
-    let Ok((hostile, mut velocity)) = enemies.get_mut(trigger.collider) else {
+    let Ok((hostile, mut velocity, mut transform)) = enemies.get_mut(trigger.collider) else {
         return;
     };
-    match hostile {
-        Hostile::InfectThenDie => {
-            commands
-                .entity(trigger.target())
-                .insert(Infected::default());
-            commands.entity(trigger.collider).remove::<Targeting>();
-            velocity.value = Vec3::ZERO;
-        }
+
+    if let Hostile::InfectThenDie = hostile {
+        velocity.value = Vec3::ZERO;
+        commands.entity(trigger.collider).insert(VirusAttached);
+        commands.entity(trigger.collider).remove::<Targeting>();
+
+        if let Ok(parent_transform) = host.get(trigger.target()) {
+            transform.translation -= parent_transform.translation;
+        };
+
+        commands
+            .entity(trigger.target())
+            .insert(Infected::default());
+        commands
+            .entity(trigger.target())
+            .add_child(trigger.collider);
     };
 }
 

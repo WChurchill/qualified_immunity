@@ -6,8 +6,7 @@ use std::f32::consts::PI;
 use crate::enemy::create_virus;
 use crate::host::{handle_infection, Host};
 use crate::movement::Velocity;
-use crate::player::Player;
-use crate::player::PlayerBundle;
+use crate::player::{handle_virus_collision, Player, PlayerBundle};
 
 pub struct LevelPlugin;
 
@@ -22,17 +21,19 @@ impl Plugin for LevelPlugin {
 fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
 
-    commands.spawn(PlayerBundle {
-        sprite: Sprite {
-            image: asset_server.load("white_blood_cell.png"),
-            custom_size: Some(Vec2::splat(40.)),
-            ..default()
-        },
-        transform: Transform::from_xyz(0., 0., 0.),
-        velocity: Velocity::new(Vec3::ZERO),
-        marker: Player,
-        collider: Collider::circle(20.0),
-    });
+    commands
+        .spawn(PlayerBundle {
+            sprite: Sprite {
+                image: asset_server.load("white_blood_cell.png"),
+                custom_size: Some(Vec2::splat(40.)),
+                ..default()
+            },
+            transform: Transform::from_xyz(0., 0., 0.),
+            velocity: Velocity::new(Vec3::ZERO),
+            marker: Player,
+            collider: Collider::circle(20.0),
+        })
+        .observe(handle_virus_collision);
 }
 
 #[derive(Bundle, Clone)]
@@ -94,7 +95,7 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
-const INITIAL_ENEMIES: i32 = 100;
+const INITIAL_ENEMIES: i32 = 5;
 fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
     const WINDOW_HEIGHT: f32 = 600.0;
     const WINDOW_WIDTH: f32 = 800.0;
