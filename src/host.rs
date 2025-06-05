@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 
 pub struct HostPlugin;
 
-use crate::enemy::create_virus;
+use crate::enemy::{create_virus, Hostile, Targeting};
 use crate::movement::{Directional, Velocity};
 use crate::schedule::InGameSet;
 
@@ -17,36 +17,47 @@ impl Plugin for HostPlugin {
 }
 
 #[derive(Component, Clone)]
-pub struct Host {
-    pub seconds_to_death: f32,
-    pub decay_multiplier: f32,
-    pub num_offspring: i32,
+pub struct Host;
+
+#[derive(Component, Clone)]
+pub struct Infected {
+    seconds_to_death: f32,
+    decay_multiplier: f32,
+    num_offspring: i32,
 }
 
-impl Host {
-    pub fn new(seconds_to_death: f32, num_offspring: i32) -> Self {
-        Host {
-            seconds_to_death: seconds_to_death,
-            decay_multiplier: 0.0,
-            num_offspring: num_offspring,
+impl Default for Infected {
+    fn default() -> Self {
+        Infected {
+            seconds_to_death: 2.0,
+            decay_multiplier: 1.0,
+            num_offspring: 4,
         }
     }
 }
 
-fn decay_cell(time: Res<Time>, mut query: Query<&mut Host>) {
-    for mut host in query.iter_mut() {
-        host.seconds_to_death -= host.decay_multiplier * time.delta_secs();
 pub fn handle_infection(
     trigger: Trigger<OnCollisionStart>,
     mut commands: Commands,
-    enemies: Query<&Hostile>,
+    mut enemies: Query<(&Hostile, &mut Velocity)>,
 ) {
-    if enemies.contains(trigger.collider) {
-        commands.entity(trigger.target()).despawn();
-    }
+    let Ok((hostile, mut velocity)) = enemies.get_mut(trigger.collider) else {
+        return;
+    };
+    match hostile {
+        Hostile::InfectThenDie => {
+            commands
+                .entity(trigger.target())
+                .insert(Infected::default());
+            commands.entity(trigger.collider).remove::<Targeting>();
+            velocity.value = Vec3::ZERO;
+        }
+    };
 }
 
 fn decay_cell(time: Res<Time>, mut query: Query<&mut Infected>) {
+    for mut i in query.iter_mut() {
+        i.seconds_to_death -= i.decay_multiplier * time.delta_secs();
     }
 }
 
@@ -54,17 +65,16 @@ fn decay_cell(time: Res<Time>, mut query: Query<&mut Infected>) {
 fn cells_die(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    query: Query<(Entity, &Host, &Transform)>,
+    query: Query<(Entity, &Infected, &Transform)>,
 ) {
-    for (entity, host, transform) in query.iter() {
-        if host.seconds_to_death > 0.0 {
+    for (entity, infected, transform) in query.iter() {
+        if infected.seconds_to_death > 0.0 {
             continue;
         }
 
         let mut rng = rand::rng();
 
-        println!("cell ded");
-        for _ in 0..host.num_offspring {
+        for _ in 0..infected.num_offspring {
             let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
             commands.spawn(create_virus(
                 &asset_server,

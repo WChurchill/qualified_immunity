@@ -35,23 +35,6 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-#[derive(Component, Clone)]
-pub struct Host {
-    pub seconds_to_death: f32,
-    pub rate_of_decay: f32,
-    pub num_offspring: i32,
-}
-
-impl Host {
-    pub fn new(seconds_to_death: f32, num_offspring: i32) -> Self {
-        Host {
-            seconds_to_death: seconds_to_death,
-            rate_of_decay: 0.0,
-            num_offspring: num_offspring,
-        }
-    }
-}
-
 #[derive(Bundle, Clone)]
 pub struct WallCellBundle {
     pub sprite: Sprite,
@@ -71,8 +54,9 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     const BOX_GRID_WIDTH: i32 = 10;
     const BOX_GRID_HEIGHT: i32 = 10;
 
-    const X_OFFSET: f32 = 300.;
+    const X_OFFSET: f32 = 0.;
     const Y_OFFSET: f32 = 0.;
+    const INTERCELL_GAP: f32 = 20.;
 
     const HITBOX_WIDTH: f32 = 35.;
     let template = WallCellBundle {
@@ -83,7 +67,7 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         transform: Transform::IDENTITY,
         collider: Collider::rectangle(HITBOX_WIDTH, HITBOX_WIDTH),
-        host: Host::new(20.0, 4),
+        host: Host,
     };
 
     let mut rng: ThreadRng = rand::rng();
@@ -95,8 +79,10 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
             }
 
             let mut wall_cell = template.clone();
-            wall_cell.transform.translation.x = j as f32 * HITBOX_WIDTH + X_OFFSET;
-            wall_cell.transform.translation.y = i as f32 * HITBOX_WIDTH + Y_OFFSET;
+            wall_cell.transform.translation.x =
+                j as f32 * (HITBOX_WIDTH + INTERCELL_GAP) + X_OFFSET;
+            wall_cell.transform.translation.y =
+                i as f32 * (HITBOX_WIDTH + INTERCELL_GAP) + Y_OFFSET;
 
             // Randomize the appearance to make them all look different.
             random_rotate_cell(&mut wall_cell, &mut rng);
