@@ -66,8 +66,9 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (set_target, set_velocity).in_set(InGameSet::EntityUpdates),
+            (set_target, unset_nonexisting_target).in_set(InGameSet::EntityUpdates),
         );
+        app.add_systems(Update, set_velocity.in_set(InGameSet::EntityUpdates));
     }
 }
 
@@ -90,6 +91,19 @@ fn set_target(
         if let Some(&random_target) = targets_list.choose(&mut rand::rng()) {
             commands.entity(virus).insert(Targeting(random_target));
         }
+    }
+}
+
+fn unset_nonexisting_target(
+    mut commands: Commands,
+    mut seekers: Query<(Entity, &Targeting), Without<Host>>,
+    targets: Query<&Transform, (With<Host>, Without<Targeting>)>,
+) {
+    for (virus, targeting) in seekers.iter_mut() {
+        let Ok(_) = targets.get(targeting.0) else {
+            commands.entity(virus).remove::<Targeting>();
+            continue;
+        };
     }
 }
 
