@@ -4,7 +4,7 @@ use rand::prelude::*;
 use std::f32::consts::PI;
 
 use crate::enemy::create_virus;
-use crate::host::Host;
+use crate::host::{handle_infection, Host};
 use crate::movement::Velocity;
 use crate::player::Player;
 use crate::player::PlayerBundle;
@@ -74,7 +74,7 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     const X_OFFSET: f32 = 300.;
     const Y_OFFSET: f32 = 0.;
 
-    const HITBOX_WIDTH: f32 = 40.;
+    const HITBOX_WIDTH: f32 = 35.;
     let template = WallCellBundle {
         sprite: Sprite {
             image: asset_server.load("wall_cell.png"),
@@ -101,7 +101,9 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
             // Randomize the appearance to make them all look different.
             random_rotate_cell(&mut wall_cell, &mut rng);
 
-            commands.spawn(wall_cell);
+            commands
+                .spawn((wall_cell, CollisionEventsEnabled))
+                .observe(handle_infection);
         }
     }
 }

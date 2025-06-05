@@ -36,6 +36,17 @@ impl Host {
 fn decay_cell(time: Res<Time>, mut query: Query<&mut Host>) {
     for mut host in query.iter_mut() {
         host.seconds_to_death -= host.decay_multiplier * time.delta_secs();
+pub fn handle_infection(
+    trigger: Trigger<OnCollisionStart>,
+    mut commands: Commands,
+    enemies: Query<&Hostile>,
+) {
+    if enemies.contains(trigger.collider) {
+        commands.entity(trigger.target()).despawn();
+    }
+}
+
+fn decay_cell(time: Res<Time>, mut query: Query<&mut Infected>) {
     }
 }
 
