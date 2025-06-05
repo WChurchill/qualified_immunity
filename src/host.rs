@@ -6,7 +6,7 @@ use std::f32::consts::PI;
 pub struct HostPlugin;
 
 use crate::enemy::{create_virus, Hostile, Targeting, VirusAttached};
-use crate::movement::{Directional, Velocity};
+use crate::movement::Velocity;
 use crate::schedule::InGameSet;
 
 impl Plugin for HostPlugin {
@@ -40,7 +40,7 @@ pub fn handle_infection(
     trigger: Trigger<OnCollisionStart>,
     mut commands: Commands,
     mut enemies: Query<(&Hostile, &mut Velocity, &mut Transform), Without<VirusAttached>>,
-    host: Query<&Transform, Without<Hostile>>,
+    host: Query<(&Transform, Option<&Infected>), Without<Hostile>>,
 ) {
     let Ok((hostile, mut velocity, mut transform)) = enemies.get_mut(trigger.collider) else {
         return;
@@ -51,13 +51,19 @@ pub fn handle_infection(
         commands.entity(trigger.collider).insert(VirusAttached);
         commands.entity(trigger.collider).remove::<Targeting>();
 
-        if let Ok(parent_transform) = host.get(trigger.target()) {
+        if let Ok((parent_transform, infected)) = host.get(trigger.target()) {
             transform.translation -= parent_transform.translation;
+
+            match infected {
+                Some(_) => {}
+                _ => {
+                    commands
+                        .entity(trigger.target())
+                        .insert(Infected::default());
+                }
+            };
         };
 
-        commands
-            .entity(trigger.target())
-            .insert(Infected::default());
         commands
             .entity(trigger.target())
             .add_child(trigger.collider);
