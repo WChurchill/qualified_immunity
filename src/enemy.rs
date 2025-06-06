@@ -7,9 +7,9 @@ use crate::host::Host;
 use crate::movement::{Directional, Velocity};
 use crate::schedule::InGameSet;
 
-// Should only attack once and then die.
 #[derive(Component)]
 pub enum Hostile {
+    // Should only attack once and then die.
     InfectThenDie,
 }
 
