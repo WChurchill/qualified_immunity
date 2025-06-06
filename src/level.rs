@@ -8,8 +8,8 @@ use crate::host::{handle_infection, Host};
 use crate::movement::{Speed, Velocity};
 use crate::player::{handle_virus_collision, Player, PlayerBundle};
 use crate::player_attack::{
-    BoostBar, DuplicationChargingGUI, DuplicationText, PlayerActionParams, PlayerChargingGUI,
-    BOOSTBAR_WIDTH,
+    BoostBar, DuplicationBar, DuplicationCharge, PlayerActionParams, PlayerChargingGUI,
+    CHARGEBAR_WIDTH,
 };
 
 pub struct LevelPlugin;
@@ -30,9 +30,9 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         max_boost_level: 2.,
     });
 
-    commands.insert_resource(DuplicationChargingGUI {
+    commands.insert_resource(DuplicationCharge {
         current_progress: 0.,
-        max_progress: 3.0,
+        max_progress: 4.0,
     });
 
     commands.spawn((
@@ -40,32 +40,69 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             position_type: PositionType::Absolute,
             bottom: Val::Px(5.),
             left: Val::Px(10.),
-            height: Val::Px(25.0),
-            width: Val::Px(BOOSTBAR_WIDTH),
             ..default()
-        },
-        Outline {
-            width: Val::Px(4.),
-            color: Color::WHITE,
-            offset: Val::Px(0.0),
         },
         children![
             (
-                BoostBar,
                 Node {
-                    left: Val::Px(0.0),
-                    overflow: Overflow::visible(),
+                    height: Val::Px(25.0),
+                    width: Val::Px(CHARGEBAR_WIDTH),
                     ..default()
                 },
-                BackgroundColor(Color::Oklcha(Oklcha::lch(0.5, 0.5, 0.5))),
+                Outline {
+                    width: Val::Px(4.),
+                    color: Color::WHITE,
+                    offset: Val::Px(0.0),
+                },
+                children![
+                    (
+                        BoostBar,
+                        Node {
+                            left: Val::Px(0.0),
+                            overflow: Overflow::visible(),
+                            ..default()
+                        },
+                        BackgroundColor(Color::Oklcha(Oklcha::lch(0.5, 0.5, 0.5))),
+                    ),
+                    (
+                        Text::new("Hold space then release to boost "),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            ..default()
+                        },
+                    )
+                ],
             ),
             (
-                Text::new("Hold space then release to boost "),
                 Node {
-                    position_type: PositionType::Absolute,
+                    height: Val::Px(25.0),
+                    width: Val::Px(CHARGEBAR_WIDTH),
                     ..default()
                 },
-            )
+                Outline {
+                    width: Val::Px(4.0),
+                    color: Color::WHITE,
+                    offset: Val::Px(0.0),
+                },
+                children![
+                    (
+                        DuplicationBar,
+                        Node {
+                            left: Val::Px(0.0),
+                            overflow: Overflow::visible(),
+                            ..default()
+                        },
+                        BackgroundColor(Color::Oklcha(Oklcha::lch(0.44, 0.06, 245.0))),
+                    ),
+                    (
+                        Text::new("Hold shift to self-replicate"),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            ..default()
+                        }
+                    ),
+                ],
+            ),
         ],
     ));
 

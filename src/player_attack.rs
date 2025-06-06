@@ -14,7 +14,7 @@ impl Plugin for PlayerAttackPlugin {
         );
         app.add_systems(
             Update,
-            (display_boost, player_boost).in_set(InGameSet::EntityUpdates),
+            (display_boost, display_multiply, player_boost).in_set(InGameSet::EntityUpdates),
         );
     }
 }
@@ -61,16 +61,19 @@ fn charge_attack(
 }
 
 #[derive(Resource)]
-pub struct DuplicationChargingGUI {
+pub struct DuplicationCharge {
     pub current_progress: f32,
     pub max_progress: f32,
 }
+
+#[derive(Component)]
+pub struct DuplicationBar;
 
 const CHARGE_MULTIPLY_KEYBINDING: KeyCode = KeyCode::ShiftLeft;
 fn charge_multiply(
     keyboard: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    mut charging: ResMut<DuplicationChargingGUI>,
+    mut charging: ResMut<DuplicationCharge>,
     mut players: Query<&mut Speed, With<Player>>,
 ) {
     if keyboard.pressed(CHARGE_MULTIPLY_KEYBINDING) {
@@ -85,9 +88,13 @@ fn charge_multiply(
 }
 
 fn display_multiply(
-    charging: Res<DuplicationChargingGUI>,
-    mut query: Query<(&mut TextSpan, &mut Mesh2d), With<DuplicationText>>,
+    charging: Res<DuplicationCharge>,
+    mut query: Query<&mut Node, With<DuplicationBar>>,
 ) {
+    for mut node in &mut query {
+        let width = charging.current_progress * CHARGEBAR_WIDTH / charging.max_progress;
+        node.width = Val::Px(width);
+    }
 }
 
 fn player_boost(
@@ -107,14 +114,14 @@ fn player_boost(
 #[derive(Component)]
 pub struct BoostBar;
 
-pub const BOOSTBAR_WIDTH: f32 = 400.0;
+pub const CHARGEBAR_WIDTH: f32 = 400.0;
 
 fn display_boost(
     charging: Res<PlayerChargingGUI>,
     mut bar_query: Query<&mut Node, With<BoostBar>>,
 ) {
     for mut node in &mut bar_query {
-        let width = charging.current_boost_level * BOOSTBAR_WIDTH / charging.max_boost_level;
+        let width = charging.current_boost_level * CHARGEBAR_WIDTH / charging.max_boost_level;
         node.width = Val::Px(width);
     }
 }
