@@ -8,7 +8,8 @@ use crate::host::{handle_infection, Host};
 use crate::movement::{Speed, Velocity};
 use crate::player::{handle_virus_collision, Player, PlayerBundle};
 use crate::player_attack::{
-    BoostText, DuplicationChargingGUI, DuplicationText, PlayerActionParams, PlayerChargingGUI,
+    BoostBar, DuplicationChargingGUI, DuplicationText, PlayerActionParams, PlayerChargingGUI,
+    BOOSTBAR_WIDTH,
 };
 
 pub struct LevelPlugin;
@@ -21,31 +22,8 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn spawn_player(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
+fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
-
-    let rect = meshes.add(Rectangle::new(200., 50.));
-    commands
-        .spawn((
-            Text::new("Hold space to boost "),
-            Node {
-                position_type: PositionType::Absolute,
-                bottom: Val::Px(5.),
-                left: Val::Px(10.),
-                ..default()
-            },
-        ))
-        .with_child((
-            TextSpan::default(),
-            BoostText,
-            Mesh2d(rect),
-            MeshMaterial2d(materials.add(Color::srgb(0.0, 1.0, 0.0))),
-        ));
 
     commands.insert_resource(PlayerChargingGUI {
         current_boost_level: 0.,
@@ -56,6 +34,40 @@ fn spawn_player(
         current_progress: 0.,
         max_progress: 3.0,
     });
+
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(5.),
+            left: Val::Px(10.),
+            height: Val::Px(25.0),
+            width: Val::Px(BOOSTBAR_WIDTH),
+            ..default()
+        },
+        Outline {
+            width: Val::Px(4.),
+            color: Color::WHITE,
+            offset: Val::Px(0.0),
+        },
+        children![
+            (
+                BoostBar,
+                Node {
+                    left: Val::Px(0.0),
+                    overflow: Overflow::visible(),
+                    ..default()
+                },
+                BackgroundColor(Color::Oklcha(Oklcha::lch(0.5, 0.5, 0.5))),
+            ),
+            (
+                Text::new("Hold space then release to boost "),
+                Node {
+                    position_type: PositionType::Absolute,
+                    ..default()
+                },
+            )
+        ],
+    ));
 
     commands
         .spawn((

@@ -34,9 +34,6 @@ pub struct PlayerChargingGUI {
 }
 
 #[derive(Component)]
-pub struct BoostText;
-
-#[derive(Component)]
 pub struct DuplicationText;
 
 const BOOSTING_BASE_SPEED: f32 = 300.;
@@ -107,14 +104,17 @@ fn player_boost(
     }
 }
 
+#[derive(Component)]
+pub struct BoostBar;
+
+pub const BOOSTBAR_WIDTH: f32 = 400.0;
+
 fn display_boost(
     charging: Res<PlayerChargingGUI>,
-    mut query: Query<(&mut TextSpan, &mut Mesh2d), With<BoostText>>,
+    mut bar_query: Query<&mut Node, With<BoostBar>>,
 ) {
-    for (mut span, _) in &mut query {
-        **span = format!(
-            "{:.2} / {:.2}",
-            charging.current_boost_level, charging.max_boost_level
-        );
+    for mut node in &mut bar_query {
+        let width = charging.current_boost_level * BOOSTBAR_WIDTH / charging.max_boost_level;
+        node.width = Val::Px(width);
     }
 }
