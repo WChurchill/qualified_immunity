@@ -30,8 +30,8 @@ pub struct Infected {
 impl Default for Infected {
     fn default() -> Self {
         Infected {
-            current_seconds_to_death: 2.0,
-            initial_seconds_to_death: 2.0,
+            current_seconds_to_death: 7.0,
+            initial_seconds_to_death: 7.0,
             decay_multiplier: 1.0,
             num_offspring: 4,
         }
@@ -92,16 +92,21 @@ fn decay_cell(
     time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut q_parent: Query<(&mut Infected, &Children)>,
-    mut q_child: Query<&mut Mesh2d, With<InfectionIndicator>>,
+    mut q_child: Query<(&mut Mesh2d, &mut Transform), With<InfectionIndicator>>,
 ) {
     for (mut infection, children) in q_parent.iter_mut() {
         infection.current_seconds_to_death -= infection.decay_multiplier * time.delta_secs();
 
         for child in children.iter() {
-            if let Ok(mut mesh2d_handle) = q_child.get_mut(child) {
+            if let Ok((mut mesh2d_handle, mut transform)) = q_child.get_mut(child) {
                 let ratio = infection.current_seconds_to_death / infection.initial_seconds_to_death;
                 // TODO: Is it ok to keep adding meshes or should I edit them in place?
-                mesh2d_handle.0 = meshes.add(CircularSector::from_turns(15.0, ratio));
+                mesh2d_handle.0 = meshes.add(CircularSector::from_turns(10.0, ratio));
+                // Make one edge of the sector vertical.
+                // rotate by 2*PI*ratio/2 radians.
+                // Start from no rotation.
+                transform.rotation = Quat::IDENTITY;
+                transform.rotate_z(ratio * PI);
             }
         }
     }
