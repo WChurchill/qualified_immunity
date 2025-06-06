@@ -21,7 +21,8 @@ pub struct Host;
 
 #[derive(Component, Clone)]
 pub struct Infected {
-    seconds_to_death: f32,
+    current_seconds_to_death: f32,
+    initial_seconds_to_death: f32,
     decay_multiplier: f32,
     num_offspring: i32,
 }
@@ -29,16 +30,22 @@ pub struct Infected {
 impl Default for Infected {
     fn default() -> Self {
         Infected {
-            seconds_to_death: 2.0,
+            current_seconds_to_death: 2.0,
+            initial_seconds_to_death: 2.0,
             decay_multiplier: 1.0,
             num_offspring: 4,
         }
     }
 }
 
+#[derive(Component, Clone)]
+struct InfectionIndicator;
+
 pub fn handle_infection(
     trigger: Trigger<OnCollisionStart>,
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     mut enemies: Query<(&Hostile, &mut Velocity, &mut Transform), Without<VirusAttached>>,
     host: Query<(&Transform, Option<&Infected>), Without<Hostile>>,
 ) {
@@ -60,6 +67,17 @@ pub fn handle_infection(
                     commands
                         .entity(trigger.target())
                         .insert(Infected::default());
+
+                    commands
+                        .spawn((
+                            InfectionIndicator,
+                            Mesh2d(meshes.add(Circle::new(15.0))),
+                            MeshMaterial2d(
+                                materials.add(Color::Srgba(Srgba::new(1.0, 0.0, 0.0, 1.0))),
+                            ),
+                            Transform::from_xyz(0.0, 0.0, 1.0),
+                        ))
+                        .insert(ChildOf(trigger.target()));
                 }
             };
         };
@@ -70,9 +88,22 @@ pub fn handle_infection(
     };
 }
 
-fn decay_cell(time: Res<Time>, mut query: Query<&mut Infected>) {
-    for mut i in query.iter_mut() {
-        i.seconds_to_death -= i.decay_multiplier * time.delta_secs();
+fn decay_cell(
+    time: Res<Time>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut q_parent: Query<(&mut Infected, &Children)>,
+    mut q_child: Query<&mut Mesh2d, With<InfectionIndicator>>,
+) {
+    for (mut infection, children) in q_parent.iter_mut() {
+        infection.current_seconds_to_death -= infection.decay_multiplier * time.delta_secs();
+
+        for child in children.iter() {
+            if let Ok(mut mesh2d_handle) = q_child.get_mut(child) {
+                let ratio = infection.current_seconds_to_death / infection.initial_seconds_to_death;
+                // TODO: Is it ok to keep adding meshes or should I edit them in place?
+                mesh2d_handle.0 = meshes.add(CircularSector::from_turns(15.0, ratio));
+            }
+        }
     }
 }
 
@@ -83,7 +114,7 @@ fn cells_die(
     query: Query<(Entity, &Infected, &Transform)>,
 ) {
     for (entity, infected, transform) in query.iter() {
-        if infected.seconds_to_death > 0.0 {
+        if infected.current_seconds_to_death > 0.0 {
             continue;
         }
 
