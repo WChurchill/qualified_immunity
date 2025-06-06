@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use rand::prelude::*;
 use std::f32::consts::PI;
 
-use crate::enemy::create_virus;
+use crate::enemy::{create_virus, Hostile};
 use crate::host::{handle_infection, Host};
 use crate::movement::{Speed, Velocity};
 use crate::player::{handle_virus_collision, Player, PlayerBundle};
@@ -16,8 +16,8 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_player, spawn_enemies, spawn_walls));
-
+        app.add_systems(Startup, (spawn_player, setup_enemy_spawner, spawn_walls));
+        app.add_systems(Update, spawn_enemies);
         app.insert_resource(ClearColor(Color::oklcha(0.72, 0.15, 15.8, 1.0)));
     }
 }
@@ -189,19 +189,66 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
-const INITIAL_ENEMIES: i32 = 5;
-fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
-    const WINDOW_HEIGHT: f32 = 600.0;
-    const WINDOW_WIDTH: f32 = 800.0;
+#[derive(Component)]
+struct EnemySpawner {
+    radius: f32,
+    cluster_radius: f32,
+    wave: i32,
+    timer_secs: f32,
+}
 
-    for _ in 0..INITIAL_ENEMIES {
-        let mut rng = rand::rng();
-        let position = Vec2::new(
-            rng.random_range(-WINDOW_WIDTH / 2.0..WINDOW_WIDTH / 2.0),
-            rng.random_range(-WINDOW_HEIGHT / 2.0..WINDOW_HEIGHT / 2.0),
-        );
+fn setup_enemy_spawner(mut commands: Commands) {
+    commands.spawn(EnemySpawner {
+        radius: 600.0,
+        cluster_radius: 100.0,
+        wave: 1,
+        timer_secs: 0.0,
+    });
+}
+
+const SECONDS_BETWEEN_WAVES: f32 = 3.0;
+
+fn spawn_enemies(
+    time: Res<Time>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut query: Query<&mut EnemySpawner>,
+    remaining_enemies: Query<&Hostile>,
+) {
+    let Ok(mut enemy_spawner) = query.single_mut() else {
+        println!("Expected unique enemy spawner");
+        return;
+    };
+
+    if !remaining_enemies.is_empty() {
+        return;
+    }
+
+    if enemy_spawner.timer_secs > 0.0 {
+        enemy_spawner.timer_secs -= time.delta_secs();
+        return;
+    }
+
+    let mut rng = rand::rng();
+
+    let cluster_origin = enemy_spawner.radius * Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
+
+    let num_enemies = (enemy_spawner.wave as f32 + 1.5).powf(2.0);
+    println!("spawning {} enemies", num_enemies);
+
+    for _ in 0..num_enemies.ceil() as i32 {
+        let individual_offset =
+            enemy_spawner.cluster_radius * Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
 
         let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
-        commands.spawn(create_virus(&asset_server, random_direction, position));
+        commands.spawn(create_virus(
+            &asset_server,
+            random_direction,
+            cluster_origin + individual_offset,
+        ));
     }
+
+    println!("wave {} over", enemy_spawner.wave);
+    enemy_spawner.timer_secs = SECONDS_BETWEEN_WAVES;
+    enemy_spawner.wave += 1;
 }
