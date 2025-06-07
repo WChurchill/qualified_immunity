@@ -17,7 +17,7 @@ pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, (spawn_player, setup_enemy_spawner, spawn_walls));
-        app.add_systems(Update, spawn_enemies);
+        app.add_systems(Update, (spawn_enemies, update_wave_text));
         app.insert_resource(ClearColor(Color::oklcha(0.72, 0.15, 15.8, 1.0)));
     }
 }
@@ -34,6 +34,11 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         current_progress: 0.,
         max_progress: 4.0,
     });
+
+    commands.spawn((
+        Text::new("Level: "),
+        children![(TextSpan::default(), WaveText)],
+    ));
 
     commands.spawn((
         Node {
@@ -270,4 +275,24 @@ fn spawn_enemies(
     println!("wave {} over", enemy_spawner.wave);
     enemy_spawner.timer_secs = SECONDS_BETWEEN_WAVES;
     enemy_spawner.wave += 1;
+}
+
+#[derive(Component)]
+struct WaveText;
+
+fn update_wave_text(
+    spawner: Query<&EnemySpawner>,
+    mut wave_text: Query<&mut TextSpan, With<WaveText>>,
+) {
+    let query_result = spawner.single();
+    for mut text in &mut wave_text {
+        match query_result {
+            Ok(unique_spawner) => {
+                text.0 = format!("{}", unique_spawner.wave);
+            }
+            Err(_) => {
+                println!("Too many spawners!");
+            }
+        };
+    }
 }
