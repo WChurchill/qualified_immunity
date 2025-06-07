@@ -191,12 +191,15 @@ fn unset_nonexisting_virus(
     }
 }
 
-const TARGET_DEBUG_COLOR: Srgba = BLUE;
+const TARGET_DEBUG_COLOR: Srgba = GREEN;
 
 fn set_velocity(
     mut gizmos: Gizmos,
-    mut seekers: Query<(&mut Velocity, &Transform, &Targeting, &Speed), Without<Player>>,
-    targets: Query<&Transform>,
+    mut seekers: Query<
+        (&mut Velocity, &Transform, &Targeting, &Speed),
+        (With<SeekVirus>, Without<Player>),
+    >,
+    targets: Query<&Transform, Without<SeekVirus>>,
 ) {
     for (mut velocity, seeker, target, speed) in &mut seekers {
         let Ok(target_transform) = targets.get(target.0) else {
