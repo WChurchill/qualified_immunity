@@ -38,15 +38,18 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
+            flex_direction: FlexDirection::ColumnReverse,
+            row_gap: Val::Px(5.0),
             bottom: Val::Px(5.),
             left: Val::Px(10.),
+            width: Val::Px(CHARGEBAR_WIDTH),
             ..default()
         },
         children![
             (
                 Node {
+                    position_type: PositionType::Relative,
                     height: Val::Px(25.0),
-                    width: Val::Px(CHARGEBAR_WIDTH),
                     ..default()
                 },
                 Outline {
@@ -75,8 +78,8 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             ),
             (
                 Node {
+                    position_type: PositionType::Relative,
                     height: Val::Px(25.0),
-                    width: Val::Px(CHARGEBAR_WIDTH),
                     ..default()
                 },
                 Outline {
@@ -102,6 +105,15 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
                         }
                     ),
                 ],
+            ),
+            (
+                Node { ..default() },
+                Outline {
+                    width: Val::Px(4.0),
+                    color: Color::WHITE,
+                    offset: Val::Px(0.0),
+                },
+                Text::new("Move with arrow keys"),
             ),
         ],
     ));
