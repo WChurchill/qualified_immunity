@@ -1,7 +1,8 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 
 use crate::movement::{Speed, Velocity};
-use crate::player::Player;
+use crate::player::{handle_virus_collision, Player};
 use crate::schedule::InGameSet;
 
 pub struct PlayerAttackPlugin;
@@ -73,14 +74,40 @@ const CHARGE_MULTIPLY_KEYBINDING: KeyCode = KeyCode::ShiftLeft;
 fn charge_multiply(
     keyboard: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
     mut charging: ResMut<DuplicationCharge>,
-    mut players: Query<&mut Speed, With<Player>>,
+    mut players: Query<(&mut Speed, &Transform), With<Player>>,
 ) {
     if keyboard.pressed(CHARGE_MULTIPLY_KEYBINDING) {
         charging.current_progress += time.delta_secs();
-        charging.current_progress = f32::min(charging.current_progress, charging.max_progress);
-        for mut speed in players.iter_mut() {
-            speed.current = speed.default / 2.0;
+
+        if charging.current_progress >= charging.max_progress {}
+
+        for (mut speed, transform) in &mut players {
+            if charging.current_progress < charging.max_progress {
+                // Incur some cost to duplicating oneself.
+                speed.current = speed.default / 2.0;
+                continue;
+            }
+
+            charging.current_progress = 0.0;
+
+            commands
+                .spawn((
+                    Sprite {
+                        image: asset_server.load("white_blood_cell.png"),
+                        custom_size: Some(Vec2::splat(40.0)),
+                        ..default()
+                    },
+                    Transform::from_translation(transform.translation),
+                    Velocity::new(Vec3::ZERO),
+                    Speed::new(75.0),
+                    Collider::circle(20.0),
+                    CollidingEntities::default(),
+                    CollisionEventsEnabled,
+                ))
+                .observe(handle_virus_collision);
         }
     } else if keyboard.just_released(CHARGE_MULTIPLY_KEYBINDING) {
         charging.current_progress = 0.0;
