@@ -1,5 +1,4 @@
 use avian2d::prelude::*;
-use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::seq::IndexedRandom;
 
@@ -14,7 +13,7 @@ pub enum Hostile {
 }
 
 #[derive(Component)]
-pub struct Targeting(Entity);
+pub struct Targeting(pub Entity);
 
 #[derive(Component)]
 pub struct VirusAttached;
@@ -107,24 +106,20 @@ fn set_target(
 
 fn unset_nonexisting_target(
     mut commands: Commands,
-    mut seekers: Query<(Entity, &Targeting), Without<Host>>,
-    targets: Query<&Transform, (With<Host>, Without<Targeting>)>,
+    seekers: Query<(Entity, &Targeting), (With<Hostile>, Without<Host>)>,
+    targets: Query<Entity, (With<Host>, Without<Targeting>)>,
 ) {
-    for (virus, targeting) in seekers.iter_mut() {
-        let Ok(_) = targets.get(targeting.0) else {
+    for (virus, targeting) in seekers {
+        if !targets.contains(targeting.0) {
             commands.entity(virus).remove::<Targeting>();
-            continue;
-        };
+        }
     }
 }
-
-const TARGET_DEBUG_COLOR: Srgba = BLUE;
 
 pub const VIRUS_SPEED: f32 = 20.0;
 const FAST_ROTATE_DISTANCE: f32 = 20.0;
 
 fn set_velocity(
-    mut gizmos: Gizmos,
     time: Res<Time>,
     mut viruses: Query<(&mut Velocity, &Transform, &Targeting, &TurnSpeed)>,
     targets: Query<&Transform>,
@@ -134,12 +129,6 @@ fn set_velocity(
         let Ok(target) = targets.get(targeting.0) else {
             continue;
         };
-
-        gizmos.line_2d(
-            seeker_transform.translation.xy(),
-            target.translation.xy(),
-            TARGET_DEBUG_COLOR,
-        );
 
         let to_target = target.translation.xy() - seeker_transform.translation.xy();
         if to_target.length() < 0.01 {

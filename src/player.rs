@@ -19,15 +19,21 @@ impl Plugin for PlayerPlugin {
 pub struct Player;
 
 #[derive(Bundle)]
-pub struct PlayerBundle {
+pub struct WhiteBloodCellBundle {
     pub sprite: Sprite,
     pub transform: Transform,
     pub velocity: Velocity,
     pub speed: Speed,
-    pub marker: Player,
     pub collider: Collider,
     pub colliding_entities: CollidingEntities,
+    pub collision_events: CollisionEventsEnabled,
+}
+
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    pub marker: Player,
     pub action_params: PlayerActionParams,
+    pub white_blood_cell_bundle: WhiteBloodCellBundle,
 }
 
 fn update_velocity(

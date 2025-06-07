@@ -6,7 +6,7 @@ use std::f32::consts::PI;
 use crate::enemy::{create_virus, Hostile};
 use crate::host::{handle_infection, Host};
 use crate::movement::{Speed, Velocity};
-use crate::player::{handle_virus_collision, Player, PlayerBundle};
+use crate::player::{handle_virus_collision, Player, PlayerBundle, WhiteBloodCellBundle};
 use crate::player_attack::{
     BoostBar, DuplicationBar, DuplicationCharge, PlayerActionParams, PlayerChargingGUI,
     CHARGEBAR_WIDTH,
@@ -119,8 +119,15 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 
     commands
-        .spawn((
-            PlayerBundle {
+        .spawn((PlayerBundle {
+            marker: Player,
+            action_params: PlayerActionParams {
+                boosted_speed: 300.,
+                remaining_secs: 0.,
+                extra_seconds_per_boost_level: 0.1,
+                extra_speed_per_boost_level: 50.,
+            },
+            white_blood_cell_bundle: WhiteBloodCellBundle {
                 sprite: Sprite {
                     image: asset_server.load("white_blood_cell.png"),
                     custom_size: Some(Vec2::splat(40.)),
@@ -129,18 +136,11 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
                 transform: Transform::from_xyz(0., 0., 0.),
                 velocity: Velocity::new(Vec3::ZERO),
                 speed: Speed::new(150.),
-                marker: Player,
                 collider: Collider::circle(20.0),
                 colliding_entities: CollidingEntities::default(),
-                action_params: PlayerActionParams {
-                    boosted_speed: 300.,
-                    remaining_secs: 0.,
-                    extra_seconds_per_boost_level: 0.1,
-                    extra_speed_per_boost_level: 50.,
-                },
+                collision_events: CollisionEventsEnabled,
             },
-            CollisionEventsEnabled,
-        ))
+        },))
         .observe(handle_virus_collision);
 }
 

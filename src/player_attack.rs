@@ -1,8 +1,11 @@
 use avian2d::prelude::*;
+use bevy::color::palettes::css::*;
 use bevy::prelude::*;
+use rand::seq::IndexedRandom;
 
+use crate::enemy::{Hostile, Targeting};
 use crate::movement::{Speed, Velocity};
-use crate::player::{handle_virus_collision, Player};
+use crate::player::{handle_virus_collision, Player, WhiteBloodCellBundle};
 use crate::schedule::InGameSet;
 
 pub struct PlayerAttackPlugin;
@@ -17,6 +20,10 @@ impl Plugin for PlayerAttackPlugin {
             Update,
             (display_boost, display_multiply, player_boost).in_set(InGameSet::EntityUpdates),
         );
+        app.add_systems(
+            Update,
+            (select_virus, unset_nonexisting_virus, set_velocity).in_set(InGameSet::EntityUpdates),
+        );
     }
 }
 
@@ -27,6 +34,9 @@ pub struct PlayerActionParams {
     pub extra_seconds_per_boost_level: f32,
     pub extra_speed_per_boost_level: f32,
 }
+
+#[derive(Component)]
+pub struct SeekVirus;
 
 #[derive(Resource)]
 pub struct PlayerChargingGUI {
@@ -95,17 +105,20 @@ fn charge_multiply(
 
             commands
                 .spawn((
-                    Sprite {
-                        image: asset_server.load("white_blood_cell.png"),
-                        custom_size: Some(Vec2::splat(40.0)),
-                        ..default()
+                    WhiteBloodCellBundle {
+                        sprite: Sprite {
+                            image: asset_server.load("white_blood_cell.png"),
+                            custom_size: Some(Vec2::splat(40.0)),
+                            ..default()
+                        },
+                        transform: Transform::from_translation(transform.translation),
+                        velocity: Velocity::new(Vec3::ZERO),
+                        speed: Speed::new(25.0),
+                        collider: Collider::circle(20.0),
+                        colliding_entities: CollidingEntities::default(),
+                        collision_events: CollisionEventsEnabled,
                     },
-                    Transform::from_translation(transform.translation),
-                    Velocity::new(Vec3::ZERO),
-                    Speed::new(75.0),
-                    Collider::circle(20.0),
-                    CollidingEntities::default(),
-                    CollisionEventsEnabled,
+                    SeekVirus,
                 ))
                 .observe(handle_virus_collision);
         }
@@ -150,5 +163,56 @@ fn display_boost(
     for mut node in &mut bar_query {
         let width = charging.current_boost_level * CHARGEBAR_WIDTH / charging.max_boost_level;
         node.width = Val::Px(width);
+    }
+}
+
+fn select_virus(
+    mut commands: Commands,
+    mut seekers: Query<Entity, (With<SeekVirus>, Without<Targeting>)>,
+    targets: Query<Entity, (With<Transform>, With<Hostile>)>,
+) {
+    let targets_list: Vec<Entity> = targets.iter().collect();
+    for seeker in &mut seekers {
+        if let Some(&random_target) = targets_list.choose(&mut rand::rng()) {
+            commands.entity(seeker).insert(Targeting(random_target));
+        }
+    }
+}
+
+fn unset_nonexisting_virus(
+    mut commands: Commands,
+    seekers: Query<(Entity, &Targeting), With<SeekVirus>>,
+    targets: Query<Entity, (With<Hostile>, Without<SeekVirus>)>,
+) {
+    for (seeker, targeting) in seekers {
+        if !targets.contains(targeting.0) {
+            commands.entity(seeker).remove::<Targeting>();
+        }
+    }
+}
+
+const TARGET_DEBUG_COLOR: Srgba = BLUE;
+
+fn set_velocity(
+    mut gizmos: Gizmos,
+    mut seekers: Query<(&mut Velocity, &Transform, &Targeting, &Speed), Without<Player>>,
+    targets: Query<&Transform>,
+) {
+    for (mut velocity, seeker, target, speed) in &mut seekers {
+        let Ok(target_transform) = targets.get(target.0) else {
+            println!("Can't find a virus to kill");
+            velocity.value = Vec3::ZERO;
+            continue;
+        };
+
+        let to_target = target_transform.translation.xy() - seeker.translation.xy();
+
+        gizmos.line_2d(
+            seeker.translation.xy(),
+            target_transform.translation.xy(),
+            TARGET_DEBUG_COLOR,
+        );
+
+        velocity.value = to_target.normalize_or_zero().extend(0.0) * speed.current;
     }
 }
