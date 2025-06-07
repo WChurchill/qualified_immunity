@@ -118,6 +118,19 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         ],
     ));
 
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("bacteria.png"),
+            custom_size: Some(Vec2::splat(125.0)),
+            ..default()
+        },
+        Transform::from_xyz(0.0, 100.0, 0.0),
+        children![(
+            Transform::from_xyz(0.0, 5.0, 0.0),
+            Collider::ellipse(13.0, 25.0),
+        )],
+    ));
+
     commands
         .spawn((
             PlayerBundle {
