@@ -158,18 +158,23 @@ fn random_rotate_cell(bundle: &mut WallCellBundle, rng: &mut ThreadRng) {
 }
 
 fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
-    const BOX_GRID_WIDTH: i32 = 10;
-    const BOX_GRID_HEIGHT: i32 = 10;
+    const BOX_GRID_WIDTH: i32 = 5;
+    const BOX_GRID_HEIGHT: i32 = 5;
 
-    const X_OFFSET: f32 = 0.;
-    const Y_OFFSET: f32 = 0.;
-    const INTERCELL_GAP: f32 = 20.;
+    const INTERCELL_GAP: f32 = 50.;
 
     const HITBOX_WIDTH: f32 = 35.;
+    const SPRITE_WIDTH: f32 = 40.0;
+
+    let x_offset: f32 =
+        -((BOX_GRID_WIDTH - 1) as f32 * (INTERCELL_GAP + SPRITE_WIDTH) + SPRITE_WIDTH) / 2.0;
+    let y_offset: f32 =
+        -((BOX_GRID_HEIGHT - 1) as f32 * (INTERCELL_GAP + SPRITE_WIDTH) + SPRITE_WIDTH) / 2.0;
+
     let template = WallCellBundle {
         sprite: Sprite {
             image: asset_server.load("wall_cell.png"),
-            custom_size: Some(Vec2::splat(40.)),
+            custom_size: Some(Vec2::splat(SPRITE_WIDTH)),
             ..default()
         },
         transform: Transform::IDENTITY,
@@ -181,15 +186,15 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     for i in 0..BOX_GRID_HEIGHT {
         for j in 0..BOX_GRID_WIDTH {
-            if rng.random_bool(0.05) {
+            if rng.random_bool(0.7) {
                 continue;
             }
 
             let mut wall_cell = template.clone();
             wall_cell.transform.translation.x =
-                j as f32 * (HITBOX_WIDTH + INTERCELL_GAP) + X_OFFSET;
+                j as f32 * (HITBOX_WIDTH + INTERCELL_GAP) + x_offset;
             wall_cell.transform.translation.y =
-                i as f32 * (HITBOX_WIDTH + INTERCELL_GAP) + Y_OFFSET;
+                i as f32 * (HITBOX_WIDTH + INTERCELL_GAP) + y_offset;
 
             // Randomize the appearance to make them all look different.
             random_rotate_cell(&mut wall_cell, &mut rng);
