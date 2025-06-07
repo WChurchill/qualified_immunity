@@ -71,7 +71,6 @@ pub fn handle_infection(
                     i.num_offspring = i32::min(i.num_offspring, i.max_offspring);
 
                     i.decay_multiplier += 0.5;
-                    println!("brooding {} offspring", i.num_offspring);
                 }
                 _ => {
                     commands

@@ -204,7 +204,6 @@ fn set_velocity(
 ) {
     for (mut velocity, seeker, target, speed) in &mut seekers {
         let Ok(target_transform) = targets.get(target.0) else {
-            println!("Can't find a virus to kill");
             velocity.value = Vec3::ZERO;
             continue;
         };
