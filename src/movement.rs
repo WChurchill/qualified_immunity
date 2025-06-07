@@ -13,6 +13,9 @@ pub struct Speed {
     pub current: f32,
 }
 
+#[derive(Component)]
+pub struct TurnSpeed(pub f32);
+
 impl Speed {
     pub fn new(value: f32) -> Self {
         Self {
@@ -21,10 +24,6 @@ impl Speed {
         }
     }
 }
-
-// Marker to indicate if object should point in direction of velocity.
-#[derive(Component, Default)]
-pub struct Directional;
 
 impl Velocity {
     pub fn new(value: Vec3) -> Self {
@@ -49,7 +48,7 @@ fn update_position(time: Res<Time>, mut sprite: Query<(&Velocity, &mut Transform
     }
 }
 
-fn update_rotation(mut sprite: Query<(&Velocity, &mut Transform), With<Directional>>) {
+fn update_rotation(mut sprite: Query<(&Velocity, &mut Transform), With<TurnSpeed>>) {
     for (velocity, mut transform) in &mut sprite {
         let direction = velocity.value.normalize_or_zero();
         if direction == Vec3::ZERO {

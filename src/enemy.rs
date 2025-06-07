@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use rand::seq::IndexedRandom;
 
 use crate::host::Host;
-use crate::movement::{Directional, Velocity};
+use crate::movement::{Speed, TurnSpeed, Velocity};
 use crate::schedule::InGameSet;
 
 #[derive(Component)]
@@ -25,7 +25,8 @@ pub struct VirusBundle {
     pub transform: Transform,
     pub collider: Collider,
     pub velocity: Velocity,
-    pub marker: Directional,
+    pub speed: Speed,
+    pub turn_speed: TurnSpeed,
     pub enemy_class: Hostile,
     pub colliding_entities: CollidingEntities,
 }
@@ -58,7 +59,11 @@ pub fn create_virus(
         velocity: Velocity {
             value: direction.extend(0.) * VIRUS_SPEED,
         },
-        marker: Directional,
+        speed: Speed {
+            current: VIRUS_SPEED,
+            default: VIRUS_SPEED,
+        },
+        turn_speed: TurnSpeed(1.0),
         enemy_class: Hostile::InfectThenDie,
         colliding_entities: CollidingEntities::default(),
     }
@@ -83,12 +88,14 @@ fn set_target(
         (
             With<Velocity>,
             With<Transform>,
-            With<Directional>,
+            With<TurnSpeed>,
+            With<Hostile>,
+            Without<Host>,
             Without<Targeting>,
             Without<VirusAttached>,
         ),
     >,
-    targets: Query<Entity, (With<Transform>, With<Host>)>,
+    targets: Query<Entity, (With<Transform>, With<Host>, Without<Hostile>)>,
 ) {
     let targets_list: Vec<Entity> = targets.iter().collect();
     for virus in viruses.iter_mut() {
@@ -115,16 +122,15 @@ const TARGET_DEBUG_COLOR: Srgba = BLUE;
 
 pub const VIRUS_SPEED: f32 = 20.0;
 const FAST_ROTATE_DISTANCE: f32 = 20.0;
-const DIRECTIONAL_TURN_SPEED: f32 = 1.0;
 
 fn set_velocity(
     mut gizmos: Gizmos,
     time: Res<Time>,
-    mut viruses: Query<(&mut Velocity, &Transform, &Targeting), With<Directional>>,
+    mut viruses: Query<(&mut Velocity, &Transform, &Targeting, &TurnSpeed)>,
     targets: Query<&Transform>,
 ) {
     // go towards the target
-    for (mut velocity, seeker_transform, targeting) in viruses.iter_mut() {
+    for (mut velocity, seeker_transform, targeting, turn_speed) in viruses.iter_mut() {
         let Ok(target) = targets.get(targeting.0) else {
             continue;
         };
@@ -144,7 +150,7 @@ fn set_velocity(
             let new_direction = velocity
                 .value
                 .xy()
-                .rotate_towards(to_target, DIRECTIONAL_TURN_SPEED * time.delta_secs());
+                .rotate_towards(to_target, turn_speed.0 * time.delta_secs());
 
             velocity.value = new_direction.normalize_or_zero().extend(0.) * VIRUS_SPEED;
         }
