@@ -199,8 +199,8 @@ struct EnemySpawner {
 
 fn setup_enemy_spawner(mut commands: Commands) {
     commands.spawn(EnemySpawner {
-        radius: 600.0,
-        cluster_radius: 100.0,
+        radius: 1000.0,
+        cluster_radius: 200.0,
         wave: 1,
         timer_secs: 0.0,
     });
@@ -237,8 +237,10 @@ fn spawn_enemies(
     println!("spawning {} enemies", num_enemies);
 
     for _ in 0..num_enemies.ceil() as i32 {
-        let individual_offset =
-            enemy_spawner.cluster_radius * Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
+        // Don't sample the circle uniformly it probably looks better
+        // with more viruses near the center.
+        let individual_offset = rng.random_range(0.0..enemy_spawner.cluster_radius)
+            * Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
 
         let random_direction = Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
         commands.spawn(create_virus(
