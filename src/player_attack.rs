@@ -3,7 +3,7 @@ use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::seq::IndexedRandom;
 
-use crate::enemy::{Hostile, Targeting};
+use crate::enemy::{Hostile, Targeting, VirusAttached};
 use crate::movement::{Speed, Velocity};
 use crate::player::{handle_virus_collision, Player, WhiteBloodCellBundle};
 use crate::schedule::InGameSet;
@@ -179,10 +179,11 @@ fn select_virus(
     }
 }
 
+// Unset target if it despawned or is attached and not practically active.
 fn unset_nonexisting_virus(
     mut commands: Commands,
     seekers: Query<(Entity, &Targeting), With<SeekVirus>>,
-    targets: Query<Entity, (With<Hostile>, Without<SeekVirus>)>,
+    targets: Query<Entity, (With<Hostile>, Without<SeekVirus>, Without<VirusAttached>)>,
 ) {
     for (seeker, targeting) in seekers {
         if !targets.contains(targeting.0) {
