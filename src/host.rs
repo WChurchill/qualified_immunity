@@ -25,6 +25,7 @@ pub struct Infected {
     initial_seconds_to_death: f32,
     decay_multiplier: f32,
     num_offspring: i32,
+    max_offspring: i32,
 }
 
 impl Default for Infected {
@@ -34,6 +35,7 @@ impl Default for Infected {
             initial_seconds_to_death: 7.0,
             decay_multiplier: 1.0,
             num_offspring: 4,
+            max_offspring: 100,
         }
     }
 }
@@ -47,7 +49,7 @@ pub fn handle_infection(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut enemies: Query<(&Hostile, &mut Velocity, &mut Transform), Without<VirusAttached>>,
-    host: Query<(&Transform, Option<&Infected>), Without<Hostile>>,
+    mut host: Query<(&Transform, Option<&mut Infected>), Without<Hostile>>,
 ) {
     let Ok((hostile, mut velocity, mut transform)) = enemies.get_mut(trigger.collider) else {
         return;
@@ -58,11 +60,19 @@ pub fn handle_infection(
         commands.entity(trigger.collider).insert(VirusAttached);
         commands.entity(trigger.collider).remove::<Targeting>();
 
-        if let Ok((parent_transform, infected)) = host.get(trigger.target()) {
+        if let Ok((parent_transform, infected)) = host.get_mut(trigger.target()) {
             transform.translation -= parent_transform.translation;
 
             match infected {
-                Some(_) => {}
+                Some(mut i) => {
+                    // MOAR VIRUSES HAHAHAHAHA
+                    i.num_offspring += i.num_offspring / 2;
+                    // Cap it at 100 lol
+                    i.num_offspring = i32::min(i.num_offspring, i.max_offspring);
+
+                    i.decay_multiplier += 0.5;
+                    println!("brooding {} offspring", i.num_offspring);
+                }
                 _ => {
                     commands
                         .entity(trigger.target())
