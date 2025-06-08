@@ -1,5 +1,6 @@
 mod enemy;
 mod host;
+mod hud;
 mod level;
 mod movement;
 mod player;
@@ -10,6 +11,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use enemy::EnemyPlugin;
 use host::HostPlugin;
+use hud::HUDPlugin;
 use level::LevelPlugin;
 use movement::MovementPlugin;
 use player::PlayerPlugin;
@@ -28,5 +30,6 @@ fn main() {
         .add_plugins(SchedulePlugin)
         .add_plugins(EnemyPlugin)
         .add_plugins(HostPlugin)
+        .add_plugins(HUDPlugin)
         .run();
 }

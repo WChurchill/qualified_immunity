@@ -7,121 +7,20 @@ use crate::enemy::{create_virus, Hostile};
 use crate::host::{handle_infection, Host};
 use crate::movement::{Speed, Velocity};
 use crate::player::{handle_virus_collision, Player, PlayerBundle, WhiteBloodCellBundle};
-use crate::player_attack::{
-    BoostBar, DuplicationBar, DuplicationCharge, PlayerActionParams, PlayerChargingGUI,
-    CHARGEBAR_WIDTH,
-};
+use crate::player_attack::PlayerActionParams;
 
 pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, (spawn_player, setup_enemy_spawner, spawn_walls));
-        app.add_systems(Update, (spawn_enemies, update_wave_text));
+        app.add_systems(Update, spawn_enemies);
         app.insert_resource(ClearColor(Color::oklcha(0.72, 0.15, 15.8, 1.0)));
     }
 }
 
 fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
-
-    commands.insert_resource(PlayerChargingGUI {
-        current_boost_level: 0.,
-        max_boost_level: 2.,
-    });
-
-    commands.insert_resource(DuplicationCharge {
-        current_progress: 0.,
-        max_progress: 4.0,
-    });
-
-    commands.spawn((
-        Text::new("Level: "),
-        children![(TextSpan::default(), WaveText)],
-    ));
-
-    commands.spawn((
-        Node {
-            position_type: PositionType::Absolute,
-            flex_direction: FlexDirection::ColumnReverse,
-            row_gap: Val::Px(5.0),
-            bottom: Val::Px(5.),
-            left: Val::Px(10.),
-            width: Val::Px(CHARGEBAR_WIDTH),
-            ..default()
-        },
-        children![
-            (
-                Node {
-                    position_type: PositionType::Relative,
-                    height: Val::Px(25.0),
-                    ..default()
-                },
-                Outline {
-                    width: Val::Px(4.),
-                    color: Color::WHITE,
-                    offset: Val::Px(0.0),
-                },
-                children![
-                    (
-                        BoostBar,
-                        Node {
-                            left: Val::Px(0.0),
-                            overflow: Overflow::visible(),
-                            ..default()
-                        },
-                        BackgroundColor(Color::Oklcha(Oklcha::lch(0.5, 0.5, 0.5))),
-                    ),
-                    (
-                        Text::new("Hold space then release to boost "),
-                        Node {
-                            position_type: PositionType::Absolute,
-                            ..default()
-                        },
-                    )
-                ],
-            ),
-            (
-                Node {
-                    position_type: PositionType::Relative,
-                    height: Val::Px(25.0),
-                    ..default()
-                },
-                Outline {
-                    width: Val::Px(4.0),
-                    color: Color::WHITE,
-                    offset: Val::Px(0.0),
-                },
-                children![
-                    (
-                        DuplicationBar,
-                        Node {
-                            left: Val::Px(0.0),
-                            overflow: Overflow::visible(),
-                            ..default()
-                        },
-                        BackgroundColor(Color::Oklcha(Oklcha::lch(0.44, 0.06, 245.0))),
-                    ),
-                    (
-                        Text::new("Hold shift to self-replicate"),
-                        Node {
-                            position_type: PositionType::Absolute,
-                            ..default()
-                        }
-                    ),
-                ],
-            ),
-            (
-                Node { ..default() },
-                Outline {
-                    width: Val::Px(4.0),
-                    color: Color::WHITE,
-                    offset: Val::Px(0.0),
-                },
-                Text::new("Move with arrow keys"),
-            ),
-        ],
-    ));
 
     commands
         .spawn((PlayerBundle {
@@ -212,11 +111,11 @@ fn spawn_walls(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 #[derive(Component)]
-struct EnemySpawner {
-    radius: f32,
-    cluster_radius: f32,
-    wave: i32,
-    timer_secs: f32,
+pub struct EnemySpawner {
+    pub radius: f32,
+    pub cluster_radius: f32,
+    pub wave: i32,
+    pub timer_secs: f32,
 }
 
 fn setup_enemy_spawner(mut commands: Commands) {
@@ -273,24 +172,4 @@ fn spawn_enemies(
 
     enemy_spawner.timer_secs = SECONDS_BETWEEN_WAVES;
     enemy_spawner.wave += 1;
-}
-
-#[derive(Component)]
-struct WaveText;
-
-fn update_wave_text(
-    spawner: Query<&EnemySpawner>,
-    mut wave_text: Query<&mut TextSpan, With<WaveText>>,
-) {
-    let query_result = spawner.single();
-    for mut text in &mut wave_text {
-        match query_result {
-            Ok(unique_spawner) => {
-                text.0 = format!("{}", unique_spawner.wave);
-            }
-            Err(_) => {
-                println!("Too many spawners!");
-            }
-        };
-    }
 }
