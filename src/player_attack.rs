@@ -1,7 +1,6 @@
 use avian2d::prelude::*;
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
-use rand::seq::IndexedRandom;
 
 use crate::enemy::{Hostile, Targeting, VirusAttached};
 use crate::movement::{Speed, Velocity};
@@ -168,14 +167,29 @@ fn display_boost(
 
 fn select_virus(
     mut commands: Commands,
-    mut seekers: Query<Entity, (With<SeekVirus>, Without<Targeting>)>,
-    targets: Query<Entity, (With<Transform>, With<Hostile>)>,
+    seekers: Query<(Entity, &Transform), (With<SeekVirus>, Without<Targeting>)>,
+    targets: Query<(Entity, &Transform), With<Hostile>>,
 ) {
-    let targets_list: Vec<Entity> = targets.iter().collect();
-    for seeker in &mut seekers {
-        if let Some(&random_target) = targets_list.choose(&mut rand::rng()) {
-            commands.entity(seeker).insert(Targeting(random_target));
+    let targets_list: Vec<(Entity, &Transform)> = targets.iter().collect();
+    if targets_list.is_empty() {
+        return;
+    }
+
+    for (seeker, seeker_transform) in seekers {
+        let mut min_dist = f32::MAX;
+        let mut closest_target: Option<&Entity> = None;
+
+        for (candidate, transform) in targets_list.iter() {
+            let dist = seeker_transform.translation.distance(transform.translation);
+            if dist < min_dist {
+                min_dist = dist;
+                closest_target = Some(candidate);
+            }
         }
+
+        if let Some(entity) = closest_target {
+            commands.entity(seeker).insert(Targeting(*entity));
+        };
     }
 }
 
