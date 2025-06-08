@@ -217,13 +217,16 @@ fn set_velocity(
     targets: Query<&Transform, Without<SeekVirus>>,
 ) {
     for (mut velocity, seeker, target, speed) in &mut seekers {
+        // Return to the center in between waves.
         let Ok(target_transform) = targets.get(target.0) else {
-            velocity.value = Vec3::ZERO;
+            let direction = -seeker.translation.normalize_or_zero();
+            velocity.value = direction * speed.current;
             continue;
         };
 
         let to_target = target_transform.translation.xy() - seeker.translation.xy();
 
+        // DO NOT RELEASE
         gizmos.line_2d(
             seeker.translation.xy(),
             target_transform.translation.xy(),

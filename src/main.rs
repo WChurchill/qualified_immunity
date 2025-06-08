@@ -20,7 +20,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(PhysicsPlugins::default())
-        .add_plugins(PhysicsDebugPlugin::default())
+        .add_plugins(PhysicsDebugPlugin::default()) // DO NOT RELEASE
         .add_plugins(MovementPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(PlayerAttackPlugin)
