@@ -126,7 +126,7 @@ fn update_wave_text(
     for mut text in &mut wave_text {
         match query_result {
             Ok(unique_spawner) => {
-                text.0 = format!("{}", unique_spawner.wave);
+                text.0 = format!("{}", unique_spawner.wave - 1);
             }
             Err(_) => {
                 println!("Too many spawners!");
