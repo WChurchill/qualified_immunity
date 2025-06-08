@@ -30,8 +30,8 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Transform::from_xyz(0.0, 100.0, 0.0),
         children![(
-            Transform::from_xyz(0.0, 5.0, 0.0),
-            Collider::ellipse(13.0, 25.0),
+            Transform::from_xyz(0.0, 20.0, 0.0),
+            Collider::ellipse(13.0, 33.0),
         )],
     ));
 
