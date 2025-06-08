@@ -1,6 +1,7 @@
 use avian2d::prelude::*;
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
+use rand::prelude::*;
 
 use crate::enemy::{Hostile, Targeting, VirusAttached};
 use crate::movement::{Speed, Velocity};
@@ -170,20 +171,29 @@ fn select_virus(
     seekers: Query<(Entity, &Transform), (With<SeekVirus>, Without<Targeting>)>,
     targets: Query<(Entity, &Transform), With<Hostile>>,
 ) {
-    let targets_list: Vec<(Entity, &Transform)> = targets.iter().collect();
+    let mut targets_list: Vec<(Entity, &Transform)> = targets.iter().collect();
     if targets_list.is_empty() {
         return;
     }
+
+    let mut rng = rand::rng();
 
     for (seeker, seeker_transform) in seekers {
         let mut min_dist = f32::MAX;
         let mut closest_target: Option<&Entity> = None;
 
-        for (candidate, transform) in targets_list.iter() {
+        targets_list.shuffle(&mut rng);
+
+        // Use the stopping rule to pseudo-randomly pick a target
+        // that's relatively close.
+        for (i, (candidate, transform)) in targets_list.iter().enumerate() {
             let dist = seeker_transform.translation.distance(transform.translation);
             if dist < min_dist {
-                min_dist = dist;
-                closest_target = Some(candidate);
+                if (i as f32 / targets_list.len() as f32) < 0.37 {
+                    min_dist = dist;
+                } else {
+                    closest_target = Some(candidate);
+                }
             }
         }
 
@@ -219,7 +229,12 @@ fn set_velocity(
     for (mut velocity, seeker, target, speed) in &mut seekers {
         // Return to the center in between waves.
         let Ok(target_transform) = targets.get(target.0) else {
-            let direction = -seeker.translation.normalize_or_zero();
+            let to_center = -seeker.translation;
+
+            // DO NOT RELEASE
+            gizmos.line_2d(seeker.translation.xy(), Vec2::ZERO, TARGET_DEBUG_COLOR);
+
+            let direction = -to_center.normalize_or_zero();
             velocity.value = direction * speed.current;
             continue;
         };

@@ -256,7 +256,6 @@ fn spawn_enemies(
     let cluster_origin = enemy_spawner.radius * Vec2::from_angle(rng.random_range(0.0..2.0 * PI));
 
     let num_enemies = (enemy_spawner.wave as f32 + 1.5).powf(2.0);
-    println!("spawning {} enemies", num_enemies);
 
     for _ in 0..num_enemies.ceil() as i32 {
         // Don't sample the circle uniformly it probably looks better
@@ -272,7 +271,6 @@ fn spawn_enemies(
         ));
     }
 
-    println!("wave {} over", enemy_spawner.wave);
     enemy_spawner.timer_secs = SECONDS_BETWEEN_WAVES;
     enemy_spawner.wave += 1;
 }
